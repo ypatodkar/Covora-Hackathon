@@ -40,7 +40,14 @@ One line per decision. Details and reasoning are in the [design spec](superpower
 - Docker Postgres on host port 5434 (5432 and 5433 are taken by other local Postgres servers); frontend dev server on 5180 (5173 is taken).
 - The database image is built locally from the official `postgres:16` image plus `postgresql-16-pgvector` (`docker/db/Dockerfile`), because Docker Hub was unreachable for `pgvector/pgvector`.
 - Memory search is an exact cosine scan with no ANN index: pgvector's HNSW index is limited to 2000 dimensions, and memory is small.
-- Embedding dimension defaults to 2048 and the NVIDIA structured-output mode to `guided_json`. Both are unconfirmed until `scripts/smoke_nvidia.py` runs with a real key.
+- Verified against the live NVIDIA API (2026-10-17):
+  - The light tier uses `nvidia/nemotron-3.5-lightning-30b-a3b`, because `nemotron-nano-3-30b-a3b` isn't served to this account.
+  - Super is `nvidia/nemotron-3-super-120b-a12b`.
+  - Embeddings are `nvidia/nemotron-3-embed-1b`, with 2048 dimensions.
+  - Structured output uses `response_format`; `guided_json` is rejected.
+- Schemas sent to the model have their `$ref`s inlined and every property required, because hosted structured decoding skipped `$ref`'d and optional fields.
+- Model reasoning is off by default for both tiers, with a per-task opt-in (`REASONING_TASKS`). On ICP parsing it made Super about 4× slower with no quality gain.
+- Model strings in the ICP are cleaned of stray leading punctuation (e.g. `/owner`, `.Operations Manager`), a decoding artifact.
 - Trace spans are written when they open (status `running`) and completed when they close, so child rows can reference them and the UI can show live progress.
 - Memory never blocks a decision: if retrieval or an episode write fails, the step continues and the failure is recorded on its span.
 - Frontend uses the Vite template's current versions (React 19, Vite 8, TypeScript 6).

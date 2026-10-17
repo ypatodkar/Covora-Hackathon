@@ -4,7 +4,7 @@ The build is split into six plans; each ends in working, tested software. Plans 
 
 | # | Plan | Status |
 |---|---|---|
-| 1 | Foundation + ICP Studio | Done (live model check pending a key) |
+| 1 | Foundation + ICP Studio | Done, verified live |
 | 2 | Discovery & qualification | Not started |
 | 3 | Drafts, approval & sending | Not started |
 | 4 | Replies & simulation | Not started |
@@ -25,6 +25,6 @@ The build is split into six plans; each ends in working, tested software. Plans 
 
 ## Known gaps
 
-- **Live model check not run yet:** add `NVIDIA_API_KEY` to `.env`, then run `cd backend && uv run python scripts/smoke_nvidia.py`. It confirms the model IDs, the JSON mode, and the embedding dimension (default 2048).
+- **Live check (2026-10-17):** the smoke check passes, and interpret → edit → save → interpret works with real models. The second run's working memory shows the user's edit. Super takes about 14 s per ICP with reasoning off.
 - NeMo Switchyard routing mode is a placeholder until Plan 6 (it currently behaves like fixed routing and says so).
 - The worker process and LangGraph arrive in Plan 2.

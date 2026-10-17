@@ -24,7 +24,7 @@ def test_model_strings_are_cleaned():
             "by_company_size": [
                 {
                     "employees": {"min": 1, "max": 50},
-                    "primary_titles": [".Operations Manager", "• COO", " "],
+                    "primary_titles": [".Operations Manager", "• COO", " ", "/owner", "| CEO"],
                     "origin": "inferred",
                 }
             ],
@@ -33,4 +33,4 @@ def test_model_strings_are_cleaned():
     icp = StructuredICP.model_validate(raw)
     assert icp.summary == "US manufacturers" and icp.assumptions == ["Assumed USD"]
     assert icp.buyer_map.target_functions[0].value == "operations"
-    assert icp.buyer_map.by_company_size[0].primary_titles == ["Operations Manager", "COO"]
+    assert icp.buyer_map.by_company_size[0].primary_titles == ["Operations Manager", "COO", "owner", "CEO"]

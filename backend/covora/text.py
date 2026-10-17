@@ -2,7 +2,7 @@ import re
 from typing import Any
 
 # Stray punctuation that structured decoding sometimes leaves at the start of strings (".Operations Manager").
-_LEADING_JUNK = re.compile(r"^[\s.:;,\-–—•*·]+")
+_LEADING_JUNK = re.compile(r"^[\s.:;,\-–—•*·/\\|#>~]+")
 
 
 def clean_text(value: str) -> str:
