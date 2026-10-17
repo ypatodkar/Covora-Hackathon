@@ -44,3 +44,19 @@ def test_module_entrypoint_registers_campaign_handler():
     )
     assert out.returncode == 0, out.stderr
     assert "campaign.run" in out.stdout.split()
+
+
+def test_worker_process_knows_every_table():
+    """The worker imports only what its jobs need; foreign keys must still resolve to known tables."""
+    import subprocess
+    import sys
+
+    code = (
+        "import covora.worker\n"
+        "from covora.jobs.registry import load_handlers\n"
+        "load_handlers()\n"
+        "from covora.db.base import Base\n"
+        "[fk.column for table in Base.metadata.tables.values() for fk in table.foreign_keys]\n"
+    )
+    out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, timeout=60)
+    assert out.returncode == 0, out.stderr[-500:]

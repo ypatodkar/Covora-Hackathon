@@ -6,6 +6,7 @@ from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker
 
+import covora.db.all_models  # noqa: F401  (every table known in every process)
 from covora.config import REPO_ROOT, Settings
 from covora.db.session import make_engine, make_sessionmaker
 from covora.gateway.backend import ChatBackend

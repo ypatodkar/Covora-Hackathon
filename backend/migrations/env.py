@@ -6,10 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-import covora.icp.models
-import covora.memory.models
-import covora.observability.models
-import covora.workspace.models  # noqa: F401
+import covora.db.all_models  # noqa: F401  (register every table for autogenerate)
 from covora.config import get_settings
 from covora.db.base import Base
 
