@@ -154,3 +154,34 @@ def contact_selection(inp: dict) -> dict:
 
 
 STANDARD_HANDLERS["ContactSelection"] = contact_selection
+
+
+def draft_email(inp: dict) -> dict:
+    contact, company, facts = inp["contact"], inp["company"], inp["facts"]
+    subject = (
+        inp["template"]["subject_template"]
+        .replace("{company}", company["name"])
+        .replace("{first_name}", contact["first_name"])
+    )
+    fact = facts[0] if facts else None
+    hook = f"I saw that {company['name']} works in {fact['value']}." if fact else f"I came across {company['name']}."
+    body = (
+        f"Hi {contact['first_name']},\n\n{hook}\n\nWe help small manufacturers automate repetitive work."
+        f"\n\nWorth a quick chat?\n\n{inp['sender_name']}"
+    )
+    return {
+        "subject": subject,
+        "body": body,
+        "personalization": [{"text": hook, "fact_ids": [fact["id"]] if fact else []}],
+    }
+
+
+def handoff_reply(inp: dict) -> dict:
+    rep = inp["rep"]
+    link = f" You can pick a time here: {rep['booking_url']}" if rep.get("booking_url") else ""
+    return {
+        "body": f"Thanks, {inp['contact']['first_name']}! I've looped in {rep['name']}, who'll take it from here.{link}"
+    }
+
+
+STANDARD_HANDLERS.update({"DraftEmail": draft_email, "HandoffReply": handoff_reply})

@@ -20,6 +20,7 @@ class SendingSettings(BaseModel):
     first_batch_size: int = Field(10, ge=1)
     no_reply_window_minutes: int = Field(10, ge=1)
     test_inbox_address: str | None = None
+    sender_name: str | None = None
 
 
 class SimulationSettings(BaseModel):

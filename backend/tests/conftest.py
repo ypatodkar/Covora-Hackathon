@@ -399,3 +399,30 @@ async def completed_campaign(graph_env, api):
 
     await run_campaign_job(graph_env.job(resume=False), graph_env.services)
     return str(graph_env.campaign_id)
+
+
+@pytest.fixture
+async def draft_env(select_env):
+    from sqlalchemy import select
+
+    from covora.campaigns.models import Campaign
+    from covora.outreach.arms import create_arms
+    from covora.outreach.drafts import draft_email
+    from covora.outreach.templates import sync_templates
+    from covora.qualification.models import Prospect
+    from covora.qualification.select import select_contacts
+
+    env = select_env
+    await select_contacts(env.campaign_id, env.qualified_ids, ctx=env.ctx, services=env.services)
+    async with env.sessionmaker() as s:
+        await sync_templates(s, env.workspace.id)
+        await create_arms(s, await s.get(Campaign, env.campaign_id), None)
+        stmt = select(Prospect.id).where(Prospect.campaign_id == env.campaign_id, Prospect.role == "primary")
+        env.primary_ids = list((await s.execute(stmt)).scalars())
+    env.primary_id = env.primary_ids[0]
+
+    async def draft():
+        return await draft_email(env.primary_id, ctx=env.ctx, services=env.services)
+
+    env.draft = draft
+    return env
