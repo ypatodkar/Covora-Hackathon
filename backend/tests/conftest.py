@@ -230,3 +230,11 @@ def mock_research():
     from covora.research.mock import MockProvider
 
     return MockProvider.from_file(BACKEND_DIR / "tests" / "data" / "mock_web.json")
+
+
+@pytest.fixture
+async def saved_icp(api):
+    from tests.fixtures_icp import EXAMPLE_ICP
+
+    r = await api.post("/api/icps", json={"prompt_text": "US manufacturers", "structured": EXAMPLE_ICP, "draft": None})
+    return r.json()["id"]
