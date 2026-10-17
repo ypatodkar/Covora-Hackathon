@@ -166,3 +166,46 @@ export interface WorkspaceSettings {
   goals: Goals;
   sending: SendingSettings;
 }
+
+export interface SizingEstimate {
+  rate_used: number;
+  prospects_needed: number;
+  prospects_planned: number;
+  companies_needed: number;
+  est_searches: number;
+  est_pages: number;
+  est_youcom_usd: number;
+  est_model_calls: number;
+  gmail_emails: number;
+  in_app_emails: number;
+  budget_remaining_usd: number;
+  fits_budget: boolean;
+  max_affordable_prospects: number;
+  cost_model_source: "default" | "measured";
+}
+
+export type CampaignStatus = "draft" | "queued" | "running" | "complete" | "failed";
+
+export interface Funnel {
+  candidates: number;
+  qualified: number;
+  rejected: number;
+  needs_review: number;
+  with_contacts: number;
+  prospects: number;
+  no_contact: number;
+}
+
+export interface CampaignOut {
+  id: string;
+  name: string;
+  status: CampaignStatus;
+  icp_version_id: string;
+  goal: Goals;
+  target_prospects: number;
+  progress: { used_queries: string[]; waves: number; stop_reason: string | null };
+  last_error: string | null;
+  created_at: string;
+  funnel: Funnel;
+  latest_run_id: string | null;
+}

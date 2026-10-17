@@ -1,6 +1,7 @@
 import { Route, Routes } from "react-router-dom";
 import { Layout } from "./components/Layout";
 import { AgentWorkflow } from "./pages/AgentWorkflow";
+import { CampaignDetail } from "./pages/CampaignDetail";
 import { Campaigns } from "./pages/Campaigns";
 import { IcpStudio } from "./pages/IcpStudio";
 import { Inbox } from "./pages/Inbox";
@@ -17,6 +18,7 @@ export default function App() {
         <Route path="icp" element={<IcpStudio />} />
         <Route path="prospects" element={<Prospects />} />
         <Route path="campaigns" element={<Campaigns />} />
+        <Route path="campaigns/:campaignId" element={<CampaignDetail />} />
         <Route path="inbox" element={<Inbox />} />
         <Route path="workflow" element={<AgentWorkflow />} />
         <Route path="workflow/runs/:runId" element={<RunDetail />} />

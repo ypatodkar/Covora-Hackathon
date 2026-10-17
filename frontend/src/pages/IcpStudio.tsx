@@ -4,6 +4,7 @@ import { apiFetch, postJson } from "../api/client";
 import type { IcpVersionOut, ParseResponse, StructuredICP } from "../api/types";
 import { PageHeader } from "../components/PageHeader";
 import { cardClass, inputClass, labelClass, primaryButton, secondaryButton } from "../components/ui";
+import { LaunchCampaignDialog } from "../features/campaigns/LaunchCampaignDialog";
 import { IcpEditor } from "../features/icp/IcpEditor";
 import { VersionHistory } from "../features/icp/VersionHistory";
 
@@ -14,6 +15,8 @@ export function IcpStudio() {
   const [edited, setEdited] = useState<StructuredICP | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
+  const [activeVersion, setActiveVersion] = useState<IcpVersionOut | null>(null);
+  const [launching, setLaunching] = useState(false);
 
   const versions = useQuery({ queryKey: ["icps"], queryFn: () => apiFetch<IcpVersionOut[]>("/icps") });
 
@@ -31,6 +34,7 @@ export function IcpStudio() {
       postJson<IcpVersionOut>("/icps", { prompt_text: promptText, structured: edited, draft, parent_id: parentId }),
     onSuccess: (version) => {
       setSavedVersion(version.version);
+      setActiveVersion(version);
       setParentId(version.id);
       setDraft(version.structured);
       setEdited(version.structured);
@@ -44,6 +48,7 @@ export function IcpStudio() {
     setEdited(version.structured);
     setParentId(version.id);
     setSavedVersion(null);
+    setActiveVersion(version);
     parse.reset();
   };
 
@@ -105,6 +110,15 @@ export function IcpStudio() {
                 >
                   Save version
                 </button>
+                <button
+                  type="button"
+                  className={secondaryButton}
+                  disabled={activeVersion === null}
+                  title={activeVersion ? undefined : "Save a version first"}
+                  onClick={() => setLaunching(true)}
+                >
+                  Launch campaign
+                </button>
               </div>
             </section>
           )}
@@ -113,6 +127,9 @@ export function IcpStudio() {
           <VersionHistory versions={versions.data ?? []} activeId={parentId} onSelect={loadVersion} />
         </aside>
       </div>
+      {launching && activeVersion && (
+        <LaunchCampaignDialog icpVersion={activeVersion} onClose={() => setLaunching(false)} />
+      )}
     </>
   );
 }

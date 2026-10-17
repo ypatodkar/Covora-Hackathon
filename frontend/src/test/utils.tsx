@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { render } from "@testing-library/react";
 import type { ReactElement } from "react";
-import { MemoryRouter, Route, Routes } from "react-router-dom";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { vi } from "vitest";
 
 type MockReply = unknown | { status: number; body: unknown };
@@ -54,4 +54,9 @@ export function renderWithQuery(ui: ReactElement, { route = "/", path }: { route
       </MemoryRouter>
     </QueryClientProvider>,
   );
+}
+
+export function LocationProbe() {
+  const location = useLocation();
+  return <div data-testid="location">{location.pathname}</div>;
 }
