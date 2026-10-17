@@ -223,3 +223,10 @@ def services(settings, sessionmaker, gateway, memory):
     from covora.services import Services
 
     return Services(settings=settings, sessionmaker=sessionmaker, gateway=gateway, memory=memory, research=None)
+
+
+@pytest.fixture
+def mock_research():
+    from covora.research.mock import MockProvider
+
+    return MockProvider.from_file(BACKEND_DIR / "tests" / "data" / "mock_web.json")

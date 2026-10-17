@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, String, Text, text, true
+from sqlalchemy import Boolean, Float, String, Text, text, true
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -17,3 +17,4 @@ class Workspace(IdTimestampMixin, Base):
     value_props: Mapped[list[str]] = mapped_column(JSONB, default=list, server_default=text("'[]'::jsonb"))
     offering_type: Mapped[str] = mapped_column(String(20), default="sales_call", server_default="sales_call")
     settings: Mapped[dict] = mapped_column(JSONB, default=dict, server_default=text("'{}'::jsonb"))
+    youcom_spend_usd: Mapped[float] = mapped_column(Float, default=0.0, server_default="0")

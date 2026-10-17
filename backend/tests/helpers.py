@@ -49,3 +49,22 @@ async def get_job(sessionmaker, *, kind: str):
         return (
             await s.execute(select(Job).where(Job.kind == kind).order_by(Job.created_at.desc()).limit(1))
         ).scalar_one()
+
+
+async def latest_tool_call(sessionmaker):
+    from covora.research.models import ToolCall
+
+    async with sessionmaker() as s:
+        return (await s.execute(select(ToolCall).order_by(ToolCall.created_at.desc()).limit(1))).scalar_one()
+
+
+async def count_tool_calls(sessionmaker, operation: str | None = None) -> int:
+    from sqlalchemy import func
+
+    from covora.research.models import ToolCall
+
+    stmt = select(func.count()).select_from(ToolCall)
+    if operation is not None:
+        stmt = stmt.where(ToolCall.operation == operation)
+    async with sessionmaker() as s:
+        return (await s.execute(stmt)).scalar_one()
