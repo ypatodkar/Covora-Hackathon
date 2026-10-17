@@ -59,7 +59,10 @@ def extracted_facts(inp: dict) -> dict:
     if inp["pages"]:
         # An invented revenue figure with no quote: the validator must drop it.
         facts.append(_fact("revenue_usd", "8000000", inp["pages"][0]["url"], ""))
-    return {"facts": facts}
+    slots: dict = {}
+    for f in facts:
+        slots.setdefault(f.pop("field"), f)
+    return slots
 
 
 def fit_judgment(inp: dict) -> dict:

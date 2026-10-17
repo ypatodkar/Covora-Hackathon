@@ -76,3 +76,29 @@ def test_numeric_value_from_quote_and_empty_facts_dropped():
     ]
     kept = validate_facts(facts, pages)
     assert [(f.field, f.value) for f in kept] == [("employee_count", "18"), ("industry", "metal fabrication")]
+
+
+def test_fact_slots_become_a_list_and_require_every_field():
+    from covora.discovery.schemas import ExtractedFacts
+    from covora.gateway.schema import output_schema
+
+    out = ExtractedFacts.model_validate(
+        {
+            "industry": {
+                "value": "machining",
+                "source_url": "https://a.test/",
+                "quote": "machining",
+                "label": "verified",
+            },
+            "location": {
+                "value": "Houston, Texas",
+                "source_url": "https://a.test/",
+                "quote": "",
+                "label": "unverified",
+            },
+            "employee_count": None,
+        }
+    )
+    assert [(f.field, f.value) for f in out.facts] == [("industry", "machining"), ("location", "Houston, Texas")]
+    required = set(output_schema(ExtractedFacts)["required"])
+    assert {"industry", "location", "employee_count", "revenue_usd"} <= required

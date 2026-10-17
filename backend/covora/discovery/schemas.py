@@ -64,8 +64,48 @@ class ExtractedFact(BaseModel):
         return clean_text(str(value)) if isinstance(value, int | float | str) else value
 
 
+class FactSlot(BaseModel):
+    value: str
+    source_url: str
+    quote: str = ""
+    label: Literal["verified", "unverified"]
+
+    @field_validator("value", mode="before")
+    @classmethod
+    def _value_text(cls, value: Any) -> Any:
+        return clean_text(str(value)) if isinstance(value, int | float | str) else value
+
+
+_SLOT_HELP = {
+    "employee_count": "Number of employees, only if a page states it (just the number)",
+    "revenue_usd": "Annual revenue in US dollars, only if a page states it (just the number)",
+    "industry": "What the company makes or does, from its own website (e.g. 'metal fabrication')",
+    "location": "Where the company is based (city, state or country)",
+    "description": "One sentence on what the company does",
+    "founded_year": "Year founded, only if a page states it",
+    "recent_event": "A recent, dated event (expansion, acquisition, new product), if any",
+}
+
+
 class ExtractedFacts(BaseModel):
-    facts: list[ExtractedFact]
+    """One slot per fact type, each filled from the pages or null, so none is skipped by accident."""
+
+    employee_count: FactSlot | None = Field(None, description=_SLOT_HELP["employee_count"])
+    revenue_usd: FactSlot | None = Field(None, description=_SLOT_HELP["revenue_usd"])
+    industry: FactSlot | None = Field(None, description=_SLOT_HELP["industry"])
+    location: FactSlot | None = Field(None, description=_SLOT_HELP["location"])
+    description: FactSlot | None = Field(None, description=_SLOT_HELP["description"])
+    founded_year: FactSlot | None = Field(None, description=_SLOT_HELP["founded_year"])
+    recent_event: FactSlot | None = Field(None, description=_SLOT_HELP["recent_event"])
+
+    @property
+    def facts(self) -> list[ExtractedFact]:
+        out = []
+        for name in _SLOT_HELP:
+            slot = getattr(self, name)
+            if slot is not None:
+                out.append(ExtractedFact(field=name, **slot.model_dump()))
+        return out
 
 
 class CriterionJudgment(BaseModel):
