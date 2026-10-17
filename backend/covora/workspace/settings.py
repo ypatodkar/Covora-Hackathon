@@ -30,7 +30,9 @@ def get_workspace_settings(ws: Workspace) -> WorkspaceSettings:
     return WorkspaceSettings.model_validate(ws.settings or {})
 
 
-async def update_workspace_settings(session: AsyncSession, ws: Workspace, value: WorkspaceSettings) -> WorkspaceSettings:
+async def update_workspace_settings(
+    session: AsyncSession, ws: Workspace, value: WorkspaceSettings
+) -> WorkspaceSettings:
     ws.settings = value.model_dump(mode="json")
     session.add(ws)
     await session.commit()

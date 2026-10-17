@@ -14,5 +14,7 @@ async def get_settings_route(session: AsyncSession = Depends(get_session)) -> Wo
 
 
 @router.put("/workspace/settings")
-async def put_settings_route(body: WorkspaceSettings, session: AsyncSession = Depends(get_session)) -> WorkspaceSettings:
+async def put_settings_route(
+    body: WorkspaceSettings, session: AsyncSession = Depends(get_session)
+) -> WorkspaceSettings:
     return await update_workspace_settings(session, await ensure_workspace(session), body)
