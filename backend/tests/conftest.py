@@ -216,3 +216,10 @@ async def api(settings, fake_backend, sessionmaker):
         transport = httpx.ASGITransport(app=manager.app)
         async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
             yield client
+
+
+@pytest.fixture
+def services(settings, sessionmaker, gateway, memory):
+    from covora.services import Services
+
+    return Services(settings=settings, sessionmaker=sessionmaker, gateway=gateway, memory=memory, research=None)
