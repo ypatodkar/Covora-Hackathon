@@ -426,3 +426,30 @@ async def draft_env(select_env):
 
     env.draft = draft
     return env
+
+
+@pytest.fixture
+async def flow_env(graph_env):
+    from covora.jobs.models import Job
+    from covora.outreach.templates import sync_templates
+    from covora.workspace.models import Workspace
+    from covora.workspace.settings import get_workspace_settings, update_workspace_settings
+
+    env = graph_env
+    async with env.sessionmaker() as s:
+        await sync_templates(s, env.workspace.id)
+
+    def resume_job(value: dict) -> Job:
+        return Job(
+            kind="campaign.run", payload={"campaign_id": str(env.campaign_id), "resume": True, "resume_value": value}
+        )
+
+    async def set_first_batch(n: int) -> None:
+        async with env.sessionmaker() as s:
+            ws = await s.get(Workspace, env.workspace.id)
+            value = get_workspace_settings(ws)
+            value.sending.first_batch_size = n
+            await update_workspace_settings(s, ws, value)
+
+    env.resume_job, env.set_first_batch = resume_job, set_first_batch
+    return env

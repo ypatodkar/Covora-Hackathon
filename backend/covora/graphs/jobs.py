@@ -2,6 +2,7 @@
 
 from uuid import UUID
 
+from langgraph.types import Command
 from sqlalchemy import update
 
 from covora.campaigns.models import Campaign
@@ -12,6 +13,7 @@ from covora.jobs.registry import HANDLERS
 from covora.observability.models import WorkflowRun
 from covora.observability.redaction import redact
 from covora.observability.tracing import finish_run, start_run
+from covora.outreach.flow import status_after_release
 from covora.services import Services
 
 JOB_KIND = "campaign.run"
@@ -52,17 +54,26 @@ async def run_campaign_job(job: Job, services: Services) -> None:
             "workspace_id": str(workspace_id),
         }
     }
-    initial = None if resume else {"campaign_id": str(campaign_id), "wave": 0, "stop_reason": None, "next": ""}
+    resume_value = job.payload.get("resume_value")
+    if resume_value is not None:
+        graph_input = Command(resume=resume_value)
+    elif resume:
+        graph_input = None
+    else:
+        graph_input = {"campaign_id": str(campaign_id), "wave": 0, "stop_reason": None, "next": ""}
     try:
         async with open_checkpointer(services.settings) as checkpointer:
-            await build_campaign_graph(services, checkpointer).ainvoke(initial, config)
+            result = await build_campaign_graph(services, checkpointer).ainvoke(graph_input, config)
     except Exception as exc:
         message = redact(f"{type(exc).__name__}: {exc}", services.settings.secret_values())[:2000]
         await finish_run(ctx, status="failed", error=message)
         await _set_campaign(services, campaign_id, status="failed", last_error=message)
         raise
     await finish_run(ctx, status="succeeded")
-    await _set_campaign(services, campaign_id, status="complete")
+    if isinstance(result, dict) and result.get("__interrupt__"):
+        await _set_campaign(services, campaign_id, status="awaiting_approval")
+    else:
+        await _set_campaign(services, campaign_id, status=await status_after_release(services, campaign_id))
 
 
 HANDLERS[JOB_KIND] = run_campaign_job

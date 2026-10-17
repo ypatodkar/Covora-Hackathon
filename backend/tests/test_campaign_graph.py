@@ -18,7 +18,7 @@ def test_route_rules():
 async def test_full_pipeline_creates_prospects(graph_env):
     await run_campaign_job(graph_env.job(resume=False), graph_env.services)
     c = await graph_env.campaign()
-    assert c.status == "complete" and c.progress["stop_reason"] in {"enough_qualified", "no_new_companies"}
+    assert c.status == "awaiting_approval" and c.progress["stop_reason"] in {"enough_qualified", "no_new_companies"}
     assert (await graph_env.funnel())["prospects"] >= 3
     names = await stage_span_names(graph_env.sessionmaker, graph_env.campaign_id)
     assert {"discover_companies", "score_companies", "find_people", "select_contacts"} <= set(names)
@@ -32,7 +32,7 @@ async def test_retry_resumes_without_rediscovery(graph_env, sessionmaker):
     searches_before = await count_tool_calls(sessionmaker, operation="search")
     graph_env.backend.fail_next("ContactSelection", times=0)
     await run_campaign_job(graph_env.job(resume=True), graph_env.services)
-    assert (await graph_env.campaign()).status == "complete"
+    assert (await graph_env.campaign()).status == "awaiting_approval"
     assert await count_tool_calls(sessionmaker, operation="search") == searches_before
     assert (await graph_env.funnel())["prospects"] >= 3
 
