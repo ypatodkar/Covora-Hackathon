@@ -30,3 +30,22 @@ async def count_memory_reads(sessionmaker, span_id: UUID) -> int:
 async def latest_llm_call(sessionmaker) -> LlmCall:
     async with sessionmaker() as s:
         return (await s.execute(select(LlmCall).order_by(LlmCall.created_at.desc()).limit(1))).scalar_one()
+
+
+async def set_locked_at(sessionmaker, job_id: UUID, when) -> None:
+    from sqlalchemy import update
+
+    from covora.jobs.models import Job
+
+    async with sessionmaker() as s:
+        await s.execute(update(Job).where(Job.id == job_id).values(locked_at=when))
+        await s.commit()
+
+
+async def get_job(sessionmaker, *, kind: str):
+    from covora.jobs.models import Job
+
+    async with sessionmaker() as s:
+        return (
+            await s.execute(select(Job).where(Job.kind == kind).order_by(Job.created_at.desc()).limit(1))
+        ).scalar_one()
