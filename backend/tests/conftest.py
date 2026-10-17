@@ -144,3 +144,60 @@ def step_env(fake_backend, gateway, memory, ctx, sessionmaker, settings):
     return StepEnv(
         backend=fake_backend, gateway=gateway, memory=memory, ctx=ctx, sessionmaker=sessionmaker, settings=settings
     )
+
+
+class IcpEnv:
+    def __init__(self, *, ws, backend, gateway, memory, ctx, settings, session):
+        self.ws = ws
+        self.backend = backend
+        self.gateway = gateway
+        self.memory = memory
+        self.ctx = ctx
+        self.settings = settings
+        self.session = session
+
+    def kwargs(self):
+        return {
+            "ctx": self.ctx,
+            "gateway": self.gateway,
+            "memory": self.memory,
+            "settings": self.settings,
+            "session": self.session,
+        }
+
+    def save_kwargs(self, **overrides):
+        from covora.icp.schemas import StructuredICP
+        from tests.fixtures_icp import EXAMPLE_ICP
+
+        base = {
+            "workspace_id": self.ws.id,
+            "prompt_text": "p",
+            "structured": StructuredICP.model_validate(EXAMPLE_ICP),
+            "draft": None,
+            "parent_id": None,
+            "created_by": "user",
+            "memory": self.memory,
+            "ctx": self.ctx,
+        }
+        return base | overrides
+
+
+@pytest.fixture
+async def icp_env(session, workspace, fake_backend, gateway, memory, ctx, settings):
+    from covora.memory.prompts import sync_prompts
+    from covora.workspace.service import WorkspaceProfile, update_profile
+
+    ws = await update_profile(
+        session,
+        workspace,
+        WorkspaceProfile(
+            name="Acme Robotics",
+            description="Cobots for small factories",
+            value_props=["Pays back in 9 months"],
+            offering_type="sales_call",
+        ),
+    )
+    await sync_prompts(session)
+    return IcpEnv(
+        ws=ws, backend=fake_backend, gateway=gateway, memory=memory, ctx=ctx, settings=settings, session=session
+    )
