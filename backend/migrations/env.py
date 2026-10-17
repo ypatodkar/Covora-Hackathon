@@ -7,7 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 
-import covora.workspace.models  # noqa: F401  (register tables for autogenerate)
+import covora.observability.models  # noqa: F401  (register tables for autogenerate)
+import covora.workspace.models  # noqa: F401
 from covora.config import get_settings
 from covora.db.base import Base
 
