@@ -391,3 +391,11 @@ async def graph_env(checkpointer_tables, discovery_env):
 async def draft_campaign_id(api, saved_icp):
     body = {"icp_version_id": saved_icp, "name": "Draft", "goals": {}, "prospect_limit": 3}
     return (await api.post("/api/campaigns", json=body)).json()["id"]
+
+
+@pytest.fixture
+async def completed_campaign(graph_env, api):
+    from covora.graphs.jobs import run_campaign_job
+
+    await run_campaign_job(graph_env.job(resume=False), graph_env.services)
+    return str(graph_env.campaign_id)
