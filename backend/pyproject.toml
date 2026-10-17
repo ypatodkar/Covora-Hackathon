@@ -16,6 +16,7 @@ dependencies = [
     "httpx",
     "langgraph==1.2.16",
     "langgraph-checkpoint-postgres==3.2.0",
+    "pyyaml>=6.0.3",
 ]
 
 [dependency-groups]

@@ -185,3 +185,20 @@ def handoff_reply(inp: dict) -> dict:
 
 
 STANDARD_HANDLERS.update({"DraftEmail": draft_email, "HandoffReply": handoff_reply})
+
+
+_SIM_TEXT = {
+    "interested": "This sounds interesting, happy to chat next week.",
+    "not_now": "Not a priority this quarter, maybe later in the year.",
+    "not_interested": "No thanks, we're all set.",
+    "wrong_person": "I'm not the right person for this; try our COO, Pat Lee.",
+    "unsubscribe": "Please remove me from your list.",
+    "out_of_office": "I'm out of the office until Monday.",
+}
+
+
+def sim_reply(inp: dict) -> dict:
+    return {"body": _SIM_TEXT.get(inp["outcome"], "Thanks.")}
+
+
+STANDARD_HANDLERS["SimReply"] = sim_reply
