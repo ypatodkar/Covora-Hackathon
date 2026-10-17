@@ -15,10 +15,13 @@ This version is a hackathon demo built on simulation: research is real, outreach
 
 ```bash
 cp .env.example .env            # then fill in NVIDIA_API_KEY (and YDC_API_KEY)
-docker compose up -d db         # Postgres on localhost:5434
+docker compose up -d db         # builds Postgres 16 + pgvector on first run; listens on localhost:5434
 cd backend && uv sync && uv run alembic upgrade head
+uv run python scripts/smoke_nvidia.py   # live check: model IDs, JSON mode, embedding dimension
 cd ../frontend && npm install
 ```
+
+If the smoke check prints an embedding dimension other than 2048, set `NEMOTRON_EMBED_DIM` in `.env` before running migrations (or re-run them: `uv run alembic downgrade base && uv run alembic upgrade head` on a fresh database).
 
 ## Run
 

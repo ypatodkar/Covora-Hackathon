@@ -38,3 +38,10 @@ One line per decision. Details and reasoning are in the [design spec](superpower
 ## Implementation decisions
 
 - Docker Postgres on host port 5434 (5432 and 5433 are taken by other local Postgres servers); frontend dev server on 5180 (5173 is taken).
+- The database image is built locally from the official `postgres:16` image plus `postgresql-16-pgvector` (`docker/db/Dockerfile`), because Docker Hub was unreachable for `pgvector/pgvector`.
+- Memory search is an exact cosine scan with no ANN index: pgvector's HNSW index is limited to 2000 dimensions, and memory is small.
+- Embedding dimension defaults to 2048 and the NVIDIA structured-output mode to `guided_json`. Both are unconfirmed until `scripts/smoke_nvidia.py` runs with a real key.
+- Trace spans are written when they open (status `running`) and completed when they close, so child rows can reference them and the UI can show live progress.
+- Memory never blocks a decision: if retrieval or an episode write fails, the step continues and the failure is recorded on its span.
+- Frontend uses the Vite template's current versions (React 19, Vite 8, TypeScript 6).
+- Ruff rules pinned in `backend/pyproject.toml` (FastAPI `Depends()` defaults and intentional en dashes are allowed).
