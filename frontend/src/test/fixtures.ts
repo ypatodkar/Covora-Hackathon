@@ -1,7 +1,11 @@
 import type {
   CampaignOut,
+  CompanyDetail,
+  CompanyRow,
+  ContactOut,
   IcpVersionOut,
   ParseResponse,
+  ProspectRow,
   RunDetail,
   SizingEstimate,
   StructuredICP,
@@ -200,3 +204,90 @@ export const CAMPAIGN_FAILED: CampaignOut = {
   last_error: "GatewayError: all model attempts failed for contact_selection",
   latest_run_id: "r2",
 };
+
+export const COMPANIES: CompanyRow[] = [
+  {
+    company_id: "co1",
+    name: "Ohio Precision Fabrication",
+    domain: "ohio-precision.test",
+    status: "contact_selected",
+    fit_score: 92,
+    confidence: "medium",
+    reason: "Metal fabrication shop in Dayton, Ohio with 18 employees.",
+    wave: 1,
+    criteria: [
+      { name: "industry", status: "met", fact_ids: ["f1"] },
+      { name: "employee_range", status: "met", fact_ids: ["f2"] },
+      { name: "revenue_range", status: "unknown", fact_ids: [] },
+    ],
+    synthetic: true,
+    facts_summary: { employee_count: "18", industry: "metal fabrication", location: "Dayton, Ohio" },
+  },
+  {
+    company_id: "co2",
+    name: "BrightPath Software",
+    domain: "brightpath.test",
+    status: "rejected",
+    fit_score: 20,
+    confidence: "medium",
+    reason: "A software company, not a manufacturer.",
+    wave: 1,
+    criteria: [{ name: "industry", status: "not_met", fact_ids: [] }],
+    synthetic: true,
+    facts_summary: {},
+  },
+];
+
+const DANA: ContactOut = {
+  id: "p1",
+  full_name: "Dana Ruiz",
+  title: "Operations Manager",
+  function: "operations",
+  seniority: "manager",
+  email: "dana.ruiz@ohio-precision.test",
+  email_status: "verified",
+  linkedin_url: "https://www.linkedin.com/in/dana-ruiz-ops",
+  source_urls: ["https://ohio-precision.test/team"],
+  synthetic: true,
+};
+
+const MARK: ContactOut = {
+  ...DANA,
+  id: "p2",
+  full_name: "Mark Ellison",
+  title: "Owner & President",
+  function: "executive",
+  seniority: "owner",
+  email: null,
+  email_status: "missing",
+  linkedin_url: null,
+};
+
+export const COMPANY_DETAIL: CompanyDetail = {
+  company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test", synthetic: true },
+  facts: [
+    {
+      field: "employee_count",
+      value: "18",
+      label: "verified",
+      source_url: "https://ohio-precision.test/",
+      quote: "18 employees",
+      retrieved_at: "2026-10-17T12:00:00Z",
+    },
+  ],
+  contacts: [DANA, MARK],
+  campaigns: [],
+};
+
+export const PROSPECTS: ProspectRow[] = [
+  {
+    prospect_id: "x1", short_id: "a1b2c3d4", role: "primary", status: "selected", confidence: "high",
+    pick_reason: "Owns operations.", company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test" },
+    contact: DANA, synthetic: true,
+  },
+  {
+    prospect_id: "x2", short_id: "e5f6a7b8", role: "backup", status: "selected", confidence: "medium",
+    pick_reason: "Owner decides at this size.", company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test" },
+    contact: MARK, synthetic: true,
+  },
+];

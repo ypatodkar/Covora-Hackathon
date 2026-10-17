@@ -209,3 +209,61 @@ export interface CampaignOut {
   funnel: Funnel;
   latest_run_id: string | null;
 }
+
+export type EvidenceLabel = "verified" | "unverified" | "unknown";
+export type CriterionStatus = "met" | "not_met" | "unknown";
+
+export interface CompanyRow {
+  company_id: string;
+  name: string;
+  domain: string;
+  status: string;
+  fit_score: number | null;
+  confidence: string | null;
+  reason: string | null;
+  wave: number;
+  criteria: { name: string; status: CriterionStatus; fact_ids: string[] }[];
+  synthetic: boolean;
+  facts_summary: Record<string, string>;
+}
+
+export interface ContactOut {
+  id: string;
+  full_name: string;
+  title: string;
+  function: string;
+  seniority: string;
+  email: string | null;
+  email_status: "verified" | "unverified" | "missing";
+  linkedin_url: string | null;
+  source_urls: string[];
+  synthetic: boolean;
+}
+
+export interface ProspectRow {
+  prospect_id: string;
+  short_id: string;
+  role: "primary" | "backup";
+  status: string;
+  confidence: string;
+  pick_reason: string;
+  company: { id: string; name: string; domain: string };
+  contact: ContactOut;
+  synthetic: boolean;
+}
+
+export interface FactOut {
+  field: string;
+  value: unknown;
+  label: EvidenceLabel;
+  source_url: string;
+  quote: string;
+  retrieved_at: string;
+}
+
+export interface CompanyDetail {
+  company: { id: string; name: string; domain: string; synthetic: boolean };
+  facts: FactOut[];
+  contacts: ContactOut[];
+  campaigns: { campaign_id: string; status: string; fit_score: number | null; reason: string | null }[];
+}
