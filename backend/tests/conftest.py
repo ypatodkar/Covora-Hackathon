@@ -97,6 +97,21 @@ def gateway(fake_backend, settings):
 
 
 @pytest.fixture
+def memory(sessionmaker, gateway):
+    from covora.memory.store import MemoryStore
+
+    return MemoryStore(sessionmaker, gateway)
+
+
+@pytest.fixture
+def tmp_prompts_dir(tmp_path, monkeypatch):
+    import covora.memory.prompts
+
+    monkeypatch.setattr(covora.memory.prompts, "PROMPTS_DIR", tmp_path)
+    return tmp_path
+
+
+@pytest.fixture
 async def ctx(sessionmaker, workspace, settings):
     from covora.observability.tracing import start_run
 
