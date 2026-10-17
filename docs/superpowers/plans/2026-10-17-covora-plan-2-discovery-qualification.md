@@ -38,6 +38,13 @@
   - **Emails:** only if found verbatim in a source. No pattern guessing.
   - **Numeric facts** (`employee_count`, `revenue_usd`): kept only with a verbatim quote from the cited page.
 - **Agent message format:** each `run_step` call sends a system message (the rendered prompt) and one user message: `json.dumps(inputs)` of that step's inputs. This is also how test fakes read the inputs.
+- **Model-output schemas** clean free-text values with `covora.text.clean_strings` in a `mode="before"` validator, because Plan 1's live check found stray leading punctuation from structured decoding. The exceptions are `quote`, `source_url`, `linkedin_url`, `email`, and `domain`, which must stay verbatim.
+- **Live model facts from Plan 1:**
+  - The light tier is `nemotron-3.5-lightning-30b-a3b`.
+  - Structured output uses `response_format`.
+  - Reasoning is off by default.
+  - A Super call takes about 14 s.
+  - Concurrency limits: Nano 8, Super 4.
 - **Campaign jobs are not auto-retried** (`max_attempts=1`). Retrying is the user's explicit action and resumes from the checkpoint.
 - **Campaign statuses:** `draft → queued → running → complete | failed`. Plan 3 adds `awaiting_approval`.
 - **CSV exports** escape any cell that starts with `=`, `+`, `-`, `@`, tab, or carriage return by prefixing `'`.
