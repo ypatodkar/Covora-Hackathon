@@ -10,9 +10,7 @@ from covora.config import Settings
 from covora.db.session import make_engine, make_sessionmaker
 
 BACKEND_DIR = Path(__file__).resolve().parents[1]
-TEST_DATABASE_URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql+psycopg://covora:covora@localhost:5434/covora_test"
-)
+TEST_DATABASE_URL = os.environ.get("TEST_DATABASE_URL", "postgresql+psycopg://covora:covora@localhost:5434/covora_test")
 
 
 @pytest.fixture(scope="session")
@@ -56,13 +54,16 @@ async def clean_db(request):
     sessionmaker = request.getfixturevalue("sessionmaker")
     async with sessionmaker() as s:
         tables = (
-            await s.execute(
-                text(
-                    "select tablename from pg_tables "
-                    "where schemaname = 'public' and tablename <> 'alembic_version'"
+            (
+                await s.execute(
+                    text(
+                        "select tablename from pg_tables where schemaname = 'public' and tablename <> 'alembic_version'"
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         if tables:
             joined = ", ".join(f'"{t}"' for t in tables)
             await s.execute(text(f"TRUNCATE {joined} RESTART IDENTITY CASCADE"))
@@ -238,3 +239,58 @@ async def saved_icp(api):
 
     r = await api.post("/api/icps", json={"prompt_text": "US manufacturers", "structured": EXAMPLE_ICP, "draft": None})
     return r.json()["id"]
+
+
+class PipelineEnv:
+    """A campaign from EXAMPLE_ICP with a scripted model and the fixture web."""
+
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+
+@pytest.fixture
+async def discovery_env(session, workspace, settings, sessionmaker, mock_research):
+    from covora.campaigns.service import create_campaign
+    from covora.gateway.gateway import ModelGateway
+    from covora.icp.models import IcpVersion
+    from covora.memory.prompts import sync_prompts
+    from covora.memory.store import MemoryStore
+    from covora.observability.tracing import start_run
+    from covora.services import Services
+    from covora.workspace.settings import Goals
+    from tests.fake_handlers import STANDARD_HANDLERS
+    from tests.fakes import ScriptedBackend
+    from tests.fixtures_icp import EXAMPLE_ICP
+
+    backend = ScriptedBackend(settings.nemotron_embed_dim, STANDARD_HANDLERS)
+    gateway = ModelGateway(backend, settings)
+    services = Services(
+        settings=settings,
+        sessionmaker=sessionmaker,
+        gateway=gateway,
+        memory=MemoryStore(sessionmaker, gateway),
+        research=mock_research,
+    )
+    await sync_prompts(session)
+    icp = IcpVersion(workspace_id=workspace.id, version=1, prompt_text="p", structured=EXAMPLE_ICP, created_by="user")
+    session.add(icp)
+    await session.commit()
+    campaign = await create_campaign(
+        session, workspace_id=workspace.id, icp=icp, name="Test", goals=Goals(), target_prospects=3
+    )
+    ctx = await start_run(
+        sessionmaker,
+        kind="campaign",
+        workspace_id=workspace.id,
+        secrets=settings.secret_values(),
+        campaign_id=campaign.id,
+    )
+    return PipelineEnv(
+        services=services,
+        backend=backend,
+        ctx=ctx,
+        campaign_id=campaign.id,
+        sessionmaker=sessionmaker,
+        workspace=workspace,
+        settings=settings,
+    )

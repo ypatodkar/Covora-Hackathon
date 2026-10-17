@@ -68,3 +68,15 @@ async def count_tool_calls(sessionmaker, operation: str | None = None) -> int:
         stmt = stmt.where(ToolCall.operation == operation)
     async with sessionmaker() as s:
         return (await s.execute(stmt)).scalar_one()
+
+
+async def candidate_domains(sessionmaker, campaign_id: UUID) -> list[str]:
+    from covora.discovery.models import CampaignCompany, Company
+
+    stmt = (
+        select(Company.domain)
+        .join(CampaignCompany, CampaignCompany.company_id == Company.id)
+        .where(CampaignCompany.campaign_id == campaign_id)
+    )
+    async with sessionmaker() as s:
+        return list((await s.execute(stmt)).scalars())

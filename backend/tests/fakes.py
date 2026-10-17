@@ -1,6 +1,7 @@
 """Test doubles: a scripted chat backend and deterministic embeddings."""
 
 import hashlib
+import json
 import math
 import re
 from collections import defaultdict, deque
@@ -61,3 +62,46 @@ class FakeChatBackend:
         if self.fail_embeddings:
             raise BackendError("HTTP 404: embedding model not found", status=404, retryable=False)
         return [fake_embedding(t, self.dim) for t in texts]
+
+
+def _last_json_user_message(messages: list[dict]) -> dict:
+    for message in reversed(messages):
+        if message.get("role") != "user":
+            continue
+        try:
+            value = json.loads(message["content"])
+        except (json.JSONDecodeError, TypeError):
+            continue
+        if isinstance(value, dict):
+            return value
+    return {}
+
+
+class ScriptedBackend(FakeChatBackend):
+    """Answers each call with a handler chosen by the requested schema's title (the Pydantic class name)."""
+
+    def __init__(self, dim: int, handlers: dict) -> None:
+        super().__init__(dim)
+        self.handlers = dict(handlers)
+        self._failures: dict[str, int] = {}
+
+    def override(self, title: str, fn) -> None:
+        self.handlers[title] = fn
+
+    def fail_next(self, title: str, times: int) -> None:
+        self._failures[title] = times
+
+    def inputs_for(self, title: str) -> list[dict]:
+        return [c["input"] for c in self.calls if c.get("title") == title]
+
+    async def chat(self, *, model, messages, json_schema, reasoning, timeout_s) -> ChatResponse:
+        title = (json_schema or {}).get("title")
+        user = _last_json_user_message(messages)
+        self.calls.append({"model": model, "title": title, "input": user, "messages": [dict(m) for m in messages]})
+        if self._failures.get(title):
+            self._failures[title] -= 1
+            raise BackendError(f"scripted failure for {title}", retryable=False)
+        handler = self.handlers.get(title)
+        if handler is None:
+            raise AssertionError(f"no scripted handler for schema {title!r}")
+        return ChatResponse(text=json.dumps(handler(user)), prompt_tokens=10, completion_tokens=5, model=model)
