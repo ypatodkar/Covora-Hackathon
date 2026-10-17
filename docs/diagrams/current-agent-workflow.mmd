@@ -1,0 +1,38 @@
+flowchart LR
+    userInput["Customer description"]
+    icp["ICP planning: Super"]
+    review["User edits and saves"]
+    correctionMemory[("ICP correction memory")]
+    worker["Launch campaign worker"]
+    subgraph researchFlow["IMPLEMENTED: research and qualification"]
+        discovery["Discovery: Nano + You.com"]
+        enrichment["Enrichment: Nano + You.com"]
+        fit["Fit judgment: Super"]
+        score["Code computes score"]
+        gate{"Enough qualified or stopped?"}
+        people["People: Nano + You.com"]
+        selection["Contact selection: Super"]
+        validate["Code validates picks"]
+        prospects["Selected prospects"]
+    end
+    selectionMemory[("Past selection memory")]
+    emailDraft["Email: Nano (unwired)"]
+    userInput --> icp --> review --> worker --> discovery
+    review -->|"Remembers corrections"| correctionMemory
+    correctionMemory -->|"Future ICP context"| icp
+    discovery --> enrichment --> fit --> score --> gate
+    gate -->|"More waves allowed"| discovery
+    gate -->|"Target or limit reached"| people
+    people --> selection --> validate --> prospects
+    prospects -.->|"Not wired yet"| emailDraft
+    validate -->|"Records valid picks"| selectionMemory
+    selectionMemory -->|"Future selection context"| selection
+    classDef agent fill:#C2E5FF,stroke:#3DADFF
+    classDef human fill:#FFECBD,stroke:#FFC943
+    classDef memory fill:#DCCCFF,stroke:#874FFF
+    class icp,discovery,enrichment,fit,people,selection agent
+    class userInput,review human
+    class correctionMemory,selectionMemory memory
+    style researchFlow fill:#F5F5F5,stroke:#B3B3B3
+    style prospects fill:#CDF4D3,stroke:#66D575
+    style emailDraft fill:#FFECBD,stroke:#FFC943

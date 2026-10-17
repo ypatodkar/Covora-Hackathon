@@ -474,3 +474,46 @@ async def sending_env(flow_env):
         ]
     await run_campaign_job(env.resume_job({"approved": ids, "rejected": []}), env.services)
     return env
+
+
+@pytest.fixture
+async def reply_env(sending_env):
+    from datetime import UTC, datetime
+
+    from sqlalchemy import select
+
+    from covora.outreach.models import EmailMessage
+    from covora.outreach.send import send_due
+    from covora.qualification.models import Prospect
+
+    env = sending_env
+    await send_due(env.services)
+    async with env.sessionmaker() as s:
+        prospects = list((await s.execute(select(Prospect).where(Prospect.campaign_id == env.campaign_id))).scalars())
+    primaries = [p for p in prospects if p.role == "primary" and p.status == "sent"]
+    env.sent_prospects = [p.id for p in primaries]
+    env.backup_of = {
+        p.id: b.id for p in primaries for b in prospects if b.role == "backup" and b.company_id == p.company_id
+    }
+    env.backup_primary = next(pid for pid in env.sent_prospects if pid in env.backup_of)
+
+    async def inbound(prospect_id, body):
+        async with env.sessionmaker() as s:
+            email = EmailMessage(
+                campaign_id=env.campaign_id,
+                prospect_id=prospect_id,
+                direction="in",
+                kind="inbound",
+                status="received",
+                subject="Re: hi",
+                body=body,
+                source="in_app_sim",
+                received_at=datetime.now(UTC),
+            )
+            s.add(email)
+            await s.commit()
+            await s.refresh(email)
+            return email
+
+    env.inbound = inbound
+    return env

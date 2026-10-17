@@ -95,12 +95,13 @@ async def _main() -> None:
     async with services.sessionmaker() as session:
         await sync_prompts(session)
     from covora.outreach.send import send_due
+    from covora.replies.backups import activate_due_backups
 
     worker = Worker(
         services,
         load_handlers(),
         poll_interval_s=settings.worker_poll_interval_s,
-        periodic=[(2.0, send_due)],
+        periodic=[(2.0, send_due), (30.0, activate_due_backups)],
     )
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()

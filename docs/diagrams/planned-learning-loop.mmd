@@ -1,0 +1,39 @@
+flowchart LR
+    subgraph plannedFlow["PLANNED WIRING: outreach and outcome learning"]
+        campaign["Campaign configuration"]
+        draft["Email: Nano (code exists)"]
+        review["User approves first batch"]
+        send["Send service: code"]
+        reply["Response analysis: Nano"]
+        recheck["Recheck: Super"]
+        action["Code acts and records"]
+        stats["Code computes statistics"]
+        learning["Learning analysis: Super"]
+        validate["Code validates claims"]
+        experiment["User approves experiment"]
+        nextVersion["Next campaign: A/B arms"]
+        compare["Code evaluates experiment"]
+        evidence{"Enough evidence?"}
+        promote["Promote winning configuration"]
+        retain["Keep current configuration"]
+        insights[("Validated insights")]
+    end
+    campaign --> draft --> review --> send --> reply
+    reply -->|"Confident"| action
+    reply -->|"Low confidence"| recheck
+    recheck -->|"Review if uncertain"| action
+    action -->|"Reply and meeting outcomes"| stats
+    stats --> learning --> validate --> experiment --> nextVersion
+    nextVersion -->|"Run campaign"| campaign
+    stats -->|"Mature experiment data"| compare --> evidence
+    evidence -->|"Yes"| promote --> campaign
+    evidence -->|"No"| retain --> campaign
+    validate -->|"Supported findings"| insights
+    insights -->|"Future decision context"| campaign
+    classDef agent fill:#C2E5FF,stroke:#3DADFF
+    classDef human fill:#FFECBD,stroke:#FFC943
+    classDef memory fill:#DCCCFF,stroke:#874FFF
+    class draft,reply,recheck,learning agent
+    class review,experiment human
+    class insights memory
+    style plannedFlow fill:#FFF8E8,stroke:#FFC943

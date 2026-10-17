@@ -17,6 +17,7 @@ HANDLERS: dict[str, Handler] = {}
 def load_handlers() -> dict[str, Handler]:
     """Import every module that registers handlers, then return the registry."""
     import covora.graphs.jobs
+    import covora.replies.handle
     import covora.sim.simulator  # noqa: F401
 
     return HANDLERS

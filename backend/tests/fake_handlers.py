@@ -27,8 +27,15 @@ def extracted_companies(inp: dict) -> dict:
 STANDARD_HANDLERS = {"QueryPlan": query_plan, "ExtractedCompanies": extracted_companies}
 
 
-_INDUSTRY_WORDS = ["metal fabrication", "machining", "plastics manufacturing", "valve manufacturing",
-                   "food manufacturing", "manufacturing", "software"]  # fmt: skip
+_INDUSTRY_WORDS = [
+    "metal fabrication",
+    "machining",
+    "plastics manufacturing",
+    "valve manufacturing",
+    "food manufacturing",
+    "manufacturing",
+    "software",
+]
 _STATES = ["Ohio", "Michigan", "Vermont", "Texas", "Indiana"]
 _MANUFACTURING = ("fabrication", "machining", "plastics", "valve", "manufacturing")
 
@@ -95,10 +102,14 @@ STANDARD_HANDLERS.update({"ExtractedFacts": extracted_facts, "FitJudgment": fit_
 
 _EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
 _ROLES = {
-    "owner": ("executive", "owner"), "president": ("executive", "owner"), "coo": ("operations", "c_level"),
-    "ceo": ("executive", "c_level"), "operations manager": ("operations", "manager"),
-    "partnerships": ("partnerships", "director"), "plant manager": ("operations", "manager"),
-}  # fmt: skip
+    "owner": ("executive", "owner"),
+    "president": ("executive", "owner"),
+    "coo": ("operations", "c_level"),
+    "ceo": ("executive", "c_level"),
+    "operations manager": ("operations", "manager"),
+    "partnerships": ("partnerships", "director"),
+    "plant manager": ("operations", "manager"),
+}
 
 
 def _role(title: str) -> tuple[str, str]:
@@ -117,16 +128,29 @@ def extracted_people(inp: dict) -> dict:
             name, title = m.group(1), m.group(2).strip()
             email = _EMAIL.search(m.group(3) or "")
             function, seniority = _role(title)
-            person = {"full_name": name, "title": title, "function": function, "seniority": seniority,
-                      "source_url": source["url"], "email": email.group(0) if email else None,
-                      "linkedin_url": next((u for u in linkedin if name.split()[0].lower() in u), None)}  # fmt: skip
+            person = {
+                "full_name": name,
+                "title": title,
+                "function": function,
+                "seniority": seniority,
+                "source_url": source["url"],
+                "email": email.group(0) if email else None,
+                "linkedin_url": next((u for u in linkedin if name.split()[0].lower() in u), None),
+            }
             if name == "Mark Ellison":
                 person["email"] = "mark@ohio-precision.test"  # invented: not in any source
             people.append(person)
             seen.add(name)
     if inp["sources"]:
-        people.append({"full_name": "Zed Phantom", "title": "COO", "function": "operations", "seniority": "c_level",
-                       "source_url": inp["sources"][0]["url"]})  # fmt: skip
+        people.append(
+            {
+                "full_name": "Zed Phantom",
+                "title": "COO",
+                "function": "operations",
+                "seniority": "c_level",
+                "source_url": inp["sources"][0]["url"],
+            }
+        )
     return {"people": people}
 
 
@@ -202,3 +226,20 @@ def sim_reply(inp: dict) -> dict:
 
 
 STANDARD_HANDLERS["SimReply"] = sim_reply
+
+
+def classify_reply(inp: dict) -> dict:
+    body = inp["reply"].lower()
+    rules = [
+        ("interesting", "interested"),
+        ("chat", "interested"),
+        ("not the right person", "wrong_person"),
+        ("not a priority", "not_now"),
+        ("no thanks", "not_interested"),
+        ("out of the office", "out_of_office"),
+    ]
+    label = next((lab for key, lab in rules if key in body), "other")
+    return {"label": label, "confidence": 0.9 if label != "other" else 0.4, "referral": None, "summary": body[:60]}
+
+
+STANDARD_HANDLERS["ReplyClassificationOut"] = classify_reply
