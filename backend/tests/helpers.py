@@ -17,6 +17,16 @@ async def get_run(sessionmaker, run_id: UUID) -> WorkflowRun:
         return (await s.execute(select(WorkflowRun).where(WorkflowRun.id == run_id))).scalar_one()
 
 
+async def count_memory_reads(sessionmaker, span_id: UUID) -> int:
+    from sqlalchemy import func
+
+    from covora.memory.models import MemoryRead
+
+    async with sessionmaker() as s:
+        stmt = select(func.count()).select_from(MemoryRead).where(MemoryRead.span_id == span_id)
+        return (await s.execute(stmt)).scalar_one()
+
+
 async def latest_llm_call(sessionmaker) -> LlmCall:
     async with sessionmaker() as s:
         return (await s.execute(select(LlmCall).order_by(LlmCall.created_at.desc()).limit(1))).scalar_one()

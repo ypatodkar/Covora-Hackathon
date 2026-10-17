@@ -116,3 +116,31 @@ async def ctx(sessionmaker, workspace, settings):
     from covora.observability.tracing import start_run
 
     return await start_run(sessionmaker, kind="icp", workspace_id=workspace.id, secrets=settings.secret_values())
+
+
+class StepEnv:
+    def __init__(self, *, backend, gateway, memory, ctx, sessionmaker, settings):
+        self.backend = backend
+        self.gateway = gateway
+        self.memory = memory
+        self.ctx = ctx
+        self.sessionmaker = sessionmaker
+        self.settings = settings
+
+    def kwargs(self, **overrides):
+        base = {
+            "ctx": self.ctx,
+            "gateway": self.gateway,
+            "memory": self.memory,
+            "settings": self.settings,
+            "goal": "test",
+            "inputs": {},
+        }
+        return base | overrides
+
+
+@pytest.fixture
+def step_env(fake_backend, gateway, memory, ctx, sessionmaker, settings):
+    return StepEnv(
+        backend=fake_backend, gateway=gateway, memory=memory, ctx=ctx, sessionmaker=sessionmaker, settings=settings
+    )
