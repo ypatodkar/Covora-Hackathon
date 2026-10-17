@@ -3,8 +3,10 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, SecretStr
+from pydantic import BaseModel, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from covora.discovery.domains import DEFAULT_BLOCKLIST
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 
@@ -51,7 +53,7 @@ class Settings(BaseSettings):
     # Research: "youcom" for real web research, "mock" for the fixture web (development; labeled synthetic).
     research_provider: Literal["youcom", "mock"] = "youcom"
     mock_web_path: str | None = None
-    research_blocklist_domains: list[str] = []
+    research_blocklist_domains: list[str] = Field(default_factory=lambda: list(DEFAULT_BLOCKLIST))
     min_fit_score: int = 60
     max_candidates_per_wave: int = 40
     max_waves: int = 15
