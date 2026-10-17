@@ -42,6 +42,23 @@ class Settings(BaseSettings):
 
     ydc_api_key: SecretStr | None = None
     youcom_budget_usd: float = 80
+    youcom_base_url: str = "https://ydc-index.io/v1"
+    youcom_search_price_usd: float = 0.005
+    youcom_contents_price_usd: float = 0.001
+    youcom_cache_ttl_days: int = 14
+    youcom_timeout_s: float = 30.0
+
+    # Research: "youcom" for real web research, "mock" for the fixture web (development; labeled synthetic).
+    research_provider: Literal["youcom", "mock"] = "youcom"
+    mock_web_path: str | None = None
+    research_blocklist_domains: list[str] = []
+    min_fit_score: int = 60
+    max_candidates_per_wave: int = 40
+    max_waves: int = 15
+    contact_yield_buffer: float = 1.25
+
+    worker_poll_interval_s: float = 1.0
+    job_stale_after_s: float = 300
 
     google_client_id: str | None = None
     google_client_secret: SecretStr | None = None

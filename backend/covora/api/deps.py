@@ -1,20 +1,11 @@
 from collections.abc import AsyncIterator
-from dataclasses import dataclass
 
 from fastapi import Depends, Request
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from covora.config import Settings
-from covora.gateway.gateway import ModelGateway
-from covora.memory.store import MemoryStore
+from covora.services import Services
 
-
-@dataclass
-class Services:
-    settings: Settings
-    sessionmaker: async_sessionmaker[AsyncSession]
-    gateway: ModelGateway
-    memory: MemoryStore
+__all__ = ["Services", "get_services", "get_session"]
 
 
 def get_services(request: Request) -> Services:
