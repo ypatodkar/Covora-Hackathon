@@ -1,15 +1,14 @@
 import asyncio
 from logging.config import fileConfig
 
+from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
-from alembic import context
-
-import covora.icp.models  # noqa: F401  (register tables for autogenerate)
-import covora.memory.models  # noqa: F401
-import covora.observability.models  # noqa: F401
+import covora.icp.models
+import covora.memory.models
+import covora.observability.models
 import covora.workspace.models  # noqa: F401
 from covora.config import get_settings
 from covora.db.base import Base

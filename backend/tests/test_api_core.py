@@ -5,7 +5,13 @@ async def test_health_reports_checks(api):
 
 
 async def test_workspace_roundtrip(api):
-    body = {"name": "Acme Robotics", "website": None, "description": "Cobots", "value_props": [], "offering_type": "dealer"}
+    body = {
+        "name": "Acme Robotics",
+        "website": None,
+        "description": "Cobots",
+        "value_props": [],
+        "offering_type": "dealer",
+    }
     assert (await api.put("/api/workspace", json=body)).status_code == 200
     assert (await api.get("/api/workspace")).json()["offering_type"] == "dealer"
 

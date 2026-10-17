@@ -210,7 +210,7 @@ class ModelGateway:
             return schema.model_validate_json(extract_json(response.text)), text
         except (ValueError, ValidationError) as err:
             repair = _REPAIR_PROMPT.format(error=str(err)[:1000])
-            msgs = msgs + [{"role": "assistant", "content": text}, {"role": "user", "content": repair}]
+            msgs = [*msgs, {"role": "assistant", "content": text}, {"role": "user", "content": repair}]
         response = await self._chat_with_retries(tier, model, msgs, json_schema, reasoning, usage)
         text = strip_reasoning(response.text)
         try:

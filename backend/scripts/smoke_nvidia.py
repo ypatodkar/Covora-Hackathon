@@ -61,7 +61,7 @@ async def main() -> int:
         backend = NvidiaBackend(settings.model_copy(update={"nvidia_structured_mode": mode}))
         try:
             answer, _ = await _answer(backend, settings.nemotron_nano_model, reasoning=False, timeout_s=90)
-        except Exception as exc:  # noqa: BLE001 - report and try the next mode
+        except Exception as exc:
             print(f"  structured mode {mode} failed: {_safe(settings, str(exc))[:300]}")
             continue
         if answer == 5:
@@ -81,7 +81,7 @@ async def main() -> int:
         else:
             ok = False
             print(f"FAIL super-json (answer={answer!r})")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         ok = False
         print(f"FAIL super-json: {_safe(settings, str(exc))[:300]}")
 
@@ -90,7 +90,7 @@ async def main() -> int:
             model=settings.nemotron_embed_model, texts=["hello world"], input_type="passage", timeout_s=60
         )
         print(f"OK embed dim={len(vectors[0])}")
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         ok = False
         print(f"FAIL embed: {_safe(settings, str(exc))[:300]}")
 

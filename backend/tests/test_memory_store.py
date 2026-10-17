@@ -27,7 +27,9 @@ async def test_superseded_excluded(memory, ctx):
         NewMemory("semantic", "insight", "mock_sim", "short emails win", {"dimension": "style"}, [], "signal"), ctx
     )
     new = await memory.write(
-        NewMemory("semantic", "insight", "mock_sim", "short emails win strongly", {"dimension": "style"}, [], "evidence"),
+        NewMemory(
+            "semantic", "insight", "mock_sim", "short emails win strongly", {"dimension": "style"}, [], "evidence"
+        ),
         ctx,
     )
     await memory.supersede(old, new, ctx)

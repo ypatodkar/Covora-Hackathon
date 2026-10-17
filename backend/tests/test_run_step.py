@@ -89,7 +89,9 @@ async def test_episode_written(step_env):
             queries=[],
             build_messages=lambda wm: [{"role": "user", "content": "go"}],
             schema=Answer,
-            episode=lambda out, wm: NewMemory("episodic", "selection_episode", "research", f"chose {out.value}", {}, []),
+            episode=lambda out, wm: NewMemory(
+                "episodic", "selection_episode", "research", f"chose {out.value}", {}, []
+            ),
         )
     )
     assert r.episode_id is not None

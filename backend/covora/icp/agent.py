@@ -15,7 +15,10 @@ from covora.workspace.models import Workspace
 
 AGENT = "icp"
 GOAL = "Turn the user's description of ideal customers into a structured ICP with a buyer map"
-_OFFERING_LABELS = {"sales_call": "a product or service that needs a sales call", "dealer": "a bulk product for dealers"}
+_OFFERING_LABELS = {
+    "sales_call": "a product or service that needs a sales call",
+    "dealer": "a bulk product for dealers",
+}
 
 
 def _format_profile(profile: dict) -> str:

@@ -6,9 +6,8 @@ from tests.helpers import fetch_spans, get_run
 
 async def test_nested_spans_record_parents(sessionmaker, workspace):
     ctx = await start_run(sessionmaker, kind="icp", workspace_id=workspace.id, secrets=[])
-    async with span(ctx, "outer", "agent") as outer:
-        async with span(outer.ctx, "inner", "llm") as inner:
-            inner.set("model", "nano")
+    async with span(ctx, "outer", "agent") as outer, span(outer.ctx, "inner", "llm") as inner:
+        inner.set("model", "nano")
     rows = await fetch_spans(sessionmaker, ctx.run_id)
     inner_row = next(r for r in rows if r.name == "inner")
     assert inner_row.parent_span_id == outer.id and inner_row.attributes["model"] == "nano"
