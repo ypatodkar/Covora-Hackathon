@@ -341,3 +341,53 @@ async def select_env(people_env):
     env = people_env
     await find_people(env.campaign_id, env.qualified_ids, ctx=env.ctx, services=env.services)
     return env
+
+
+@pytest.fixture(scope="session")
+async def checkpointer_tables(settings, migrated):
+    from covora.graphs.checkpointer import ensure_checkpointer_tables
+
+    await ensure_checkpointer_tables(settings)
+
+
+@pytest.fixture
+async def graph_env(checkpointer_tables, discovery_env):
+    from sqlalchemy import update
+
+    from covora.campaigns.models import Campaign
+    from covora.campaigns.service import campaign_funnel
+    from covora.jobs.models import Job
+    from covora.research.mock import ChargeWith, MockProvider
+    from covora.workspace.models import Workspace
+
+    env = discovery_env
+
+    def job(resume: bool) -> Job:
+        return Job(kind="campaign.run", payload={"campaign_id": str(env.campaign_id), "resume": resume})
+
+    async def campaign() -> Campaign:
+        async with env.sessionmaker() as s:
+            return await s.get(Campaign, env.campaign_id)
+
+    async def funnel() -> dict:
+        async with env.sessionmaker() as s:
+            return await campaign_funnel(s, env.campaign_id)
+
+    async def set_budget(*, spent: float, cap: float) -> None:
+        async with env.sessionmaker() as s:
+            await s.execute(update(Workspace).where(Workspace.id == env.workspace.id).values(youcom_spend_usd=spent))
+            await s.commit()
+        env.services.settings = env.settings.model_copy(update={"youcom_budget_usd": cap})
+        env.services.research = MockProvider.from_file(
+            BACKEND_DIR / "tests" / "data" / "mock_web.json",
+            charge_with=ChargeWith(sessionmaker=env.sessionmaker, cap=cap, price=0.05),
+        )
+
+    env.job, env.campaign, env.funnel, env.set_budget = job, campaign, funnel, set_budget
+    return env
+
+
+@pytest.fixture
+async def draft_campaign_id(api, saved_icp):
+    body = {"icp_version_id": saved_icp, "name": "Draft", "goals": {}, "prospect_limit": 3}
+    return (await api.post("/api/campaigns", json=body)).json()["id"]

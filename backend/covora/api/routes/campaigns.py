@@ -13,6 +13,7 @@ from covora.campaigns.models import Campaign
 from covora.campaigns.service import campaign_funnel, create_campaign, latest_run_id
 from covora.campaigns.sizing import CostModel, SizingEstimate, estimate_campaign, measured_cost_model
 from covora.icp.models import IcpVersion
+from covora.jobs.queue import enqueue
 from covora.research.budget import spend
 from covora.workspace.service import ensure_workspace
 from covora.workspace.settings import Goals, get_workspace_settings
@@ -126,3 +127,30 @@ async def list_campaigns(session: AsyncSession = Depends(get_session)) -> list[C
 @router.get("/campaigns/{campaign_id}")
 async def get_campaign(campaign_id: UUID, session: AsyncSession = Depends(get_session)) -> CampaignOut:
     return await campaign_out(session, await get_campaign_or_404(session, campaign_id))
+
+
+async def _enqueue_run(session: AsyncSession, campaign: Campaign, *, resume: bool) -> None:
+    from covora.graphs.jobs import JOB_KIND  # local import: keeps the API importable without the graph
+
+    campaign.status = "queued"
+    campaign.last_error = None
+    await session.commit()
+    await enqueue(session, JOB_KIND, {"campaign_id": str(campaign.id), "resume": resume}, max_attempts=1)
+
+
+@router.post("/campaigns/{campaign_id}/run")
+async def run_campaign(campaign_id: UUID, session: AsyncSession = Depends(get_session)) -> CampaignOut:
+    campaign = await get_campaign_or_404(session, campaign_id)
+    if campaign.status != "draft":
+        raise ApiError("invalid_state", f"A campaign can only be started from draft (it is {campaign.status}).", 409)
+    await _enqueue_run(session, campaign, resume=False)
+    return await campaign_out(session, campaign)
+
+
+@router.post("/campaigns/{campaign_id}/retry")
+async def retry_campaign(campaign_id: UUID, session: AsyncSession = Depends(get_session)) -> CampaignOut:
+    campaign = await get_campaign_or_404(session, campaign_id)
+    if campaign.status != "failed":
+        raise ApiError("invalid_state", f"Only a failed campaign can be retried (it is {campaign.status}).", 409)
+    await _enqueue_run(session, campaign, resume=True)
+    return await campaign_out(session, campaign)

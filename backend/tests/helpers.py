@@ -132,3 +132,13 @@ async def prospects_by_domain(sessionmaker, campaign_id: UUID) -> dict:
         for domain, prospect in (await s.execute(stmt)).all():
             out[domain].append(prospect)
     return dict(out)
+
+
+async def stage_span_names(sessionmaker, campaign_id: UUID) -> list[str]:
+    stmt = (
+        select(Span.name)
+        .join(WorkflowRun, Span.run_id == WorkflowRun.id)
+        .where(WorkflowRun.campaign_id == campaign_id, Span.kind == "stage")
+    )
+    async with sessionmaker() as s:
+        return list((await s.execute(stmt)).scalars())

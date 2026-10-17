@@ -71,8 +71,10 @@ class Worker:
 
 async def _main() -> None:
     import covora.graphs.jobs  # noqa: F401  (registers job handlers)
+    from covora.graphs.checkpointer import ensure_checkpointer_tables
 
     settings = get_settings()
+    await ensure_checkpointer_tables(settings)
     services, engine = build_services(settings)
     async with services.sessionmaker() as session:
         await sync_prompts(session)
