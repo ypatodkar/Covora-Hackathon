@@ -9,22 +9,18 @@ import logging
 import os
 import signal
 import socket
-from collections.abc import Awaitable, Callable, Mapping
+import sys
+from collections.abc import Mapping
 from uuid import uuid4
 
 from covora.config import get_settings
-from covora.jobs.models import Job
 from covora.jobs.queue import claim_next, complete, fail
+from covora.jobs.registry import Handler, load_handlers
 from covora.memory.prompts import sync_prompts
 from covora.observability.redaction import redact
 from covora.services import Services, build_services
 
 logger = logging.getLogger("covora.worker")
-
-Handler = Callable[[Job, Services], Awaitable[None]]
-
-# Job kind → handler. Filled by modules that define jobs (see covora.graphs.jobs).
-HANDLERS: dict[str, Handler] = {}
 
 
 class Worker:
@@ -78,20 +74,23 @@ async def _main() -> None:
     services, engine = build_services(settings)
     async with services.sessionmaker() as session:
         await sync_prompts(session)
-    worker = Worker(services, HANDLERS, poll_interval_s=settings.worker_poll_interval_s)
+    worker = Worker(services, load_handlers(), poll_interval_s=settings.worker_poll_interval_s)
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
         loop.add_signal_handler(sig, stop.set)
-    print(f"worker {worker.worker_id} started")
+    print(f"worker {worker.worker_id} started", flush=True)
     try:
         await worker.run_forever(stop)
     finally:
         await engine.dispose()
-        print(f"worker {worker.worker_id} stopped")
+        print(f"worker {worker.worker_id} stopped", flush=True)
 
 
 def main() -> None:
+    if "--list-handlers" in sys.argv:
+        print(" ".join(sorted(load_handlers())))
+        return
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
     asyncio.run(_main())
 

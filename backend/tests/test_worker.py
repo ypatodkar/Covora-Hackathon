@@ -32,3 +32,15 @@ async def test_unknown_kind_fails(services, session):
 
 async def test_idle_returns_false(services):
     assert await Worker(services, {}).run_once() is False
+
+
+def test_module_entrypoint_registers_campaign_handler():
+    """`python -m covora.worker` runs as __main__; handlers must still land in the registry it uses."""
+    import subprocess
+    import sys
+
+    out = subprocess.run(
+        [sys.executable, "-m", "covora.worker", "--list-handlers"], capture_output=True, text=True, timeout=60
+    )
+    assert out.returncode == 0, out.stderr
+    assert "campaign.run" in out.stdout.split()

@@ -8,11 +8,11 @@ from covora.campaigns.models import Campaign
 from covora.graphs.campaign import build_campaign_graph
 from covora.graphs.checkpointer import open_checkpointer
 from covora.jobs.models import Job
+from covora.jobs.registry import HANDLERS
 from covora.observability.models import WorkflowRun
 from covora.observability.redaction import redact
 from covora.observability.tracing import finish_run, start_run
 from covora.services import Services
-from covora.worker import HANDLERS
 
 JOB_KIND = "campaign.run"
 
