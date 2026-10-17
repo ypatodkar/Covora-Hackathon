@@ -453,3 +453,24 @@ async def flow_env(graph_env):
 
     env.resume_job, env.set_first_batch = resume_job, set_first_batch
     return env
+
+
+@pytest.fixture
+async def sending_env(flow_env):
+    """A campaign whose first batch was approved: every cold email is queued."""
+    from sqlalchemy import select
+
+    from covora.graphs.jobs import run_campaign_job
+    from covora.outreach.models import EmailMessage
+
+    env = flow_env
+    await run_campaign_job(env.job(resume=False), env.services)
+    async with env.sessionmaker() as s:
+        ids = [
+            str(i)
+            for i in (
+                await s.execute(select(EmailMessage.id).where(EmailMessage.campaign_id == env.campaign_id))
+            ).scalars()
+        ]
+    await run_campaign_job(env.resume_job({"approved": ids, "rejected": []}), env.services)
+    return env

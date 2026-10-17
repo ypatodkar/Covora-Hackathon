@@ -10,7 +10,8 @@ import os
 import signal
 import socket
 import sys
-from collections.abc import Mapping
+import time
+from collections.abc import Awaitable, Callable, Mapping
 from uuid import uuid4
 
 from covora.config import get_settings
@@ -31,9 +32,11 @@ class Worker:
         *,
         worker_id: str | None = None,
         poll_interval_s: float = 1.0,
+        periodic: list[tuple[float, Callable[[Services], Awaitable[int]]]] | None = None,
     ) -> None:
         self._services = services
         self._handlers = handlers
+        self._periodic = [(interval, fn, 0.0) for interval, fn in (periodic or [])]
         self.worker_id = worker_id or f"{socket.gethostname()}-{os.getpid()}-{uuid4().hex[:6]}"
         self._poll_interval_s = poll_interval_s
 
@@ -56,9 +59,26 @@ class Worker:
             logger.info("job %s %s done", job.kind, job.id)
         return True
 
+    async def run_periodic(self) -> None:
+        now = time.monotonic()
+        updated = []
+        for interval, fn, due in self._periodic:
+            if now >= due:
+                try:
+                    await fn(self._services)
+                except Exception as exc:  # a failing loop is logged and retried next interval
+                    secrets = self._services.settings.secret_values()
+                    logger.warning(
+                        "periodic %s failed: %s", fn.__name__, redact(f"{type(exc).__name__}: {exc}", secrets)
+                    )
+                due = now + interval
+            updated.append((interval, fn, due))
+        self._periodic = updated
+
     async def run_forever(self, stop: asyncio.Event | None = None) -> None:
         stop = stop or asyncio.Event()
         while not stop.is_set():
+            await self.run_periodic()
             worked = await self.run_once()
             if not worked:
                 with contextlib.suppress(TimeoutError):
@@ -74,7 +94,14 @@ async def _main() -> None:
     services, engine = build_services(settings)
     async with services.sessionmaker() as session:
         await sync_prompts(session)
-    worker = Worker(services, load_handlers(), poll_interval_s=settings.worker_poll_interval_s)
+    from covora.outreach.send import send_due
+
+    worker = Worker(
+        services,
+        load_handlers(),
+        poll_interval_s=settings.worker_poll_interval_s,
+        periodic=[(2.0, send_due)],
+    )
     stop = asyncio.Event()
     loop = asyncio.get_running_loop()
     for sig in (signal.SIGINT, signal.SIGTERM):
