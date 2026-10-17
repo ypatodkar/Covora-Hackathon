@@ -62,6 +62,8 @@ def validate_selection(
     candidate_ids: set[str],
     suppressed_emails: set[str],
     emails: Mapping[str, str | None],
+    *,
+    seniority: Mapping[str, str] | None = None,
 ) -> ContactSelection:
     """Picks must be real candidates, not suppressed, and distinct. Raises ValueError for an invalid primary."""
     if sel.no_suitable_contact or sel.primary is None:
@@ -76,6 +78,8 @@ def validate_selection(
     if not ok(sel.primary):
         raise ValueError(f"primary pick {sel.primary.contact_id!r} is not an available candidate")
     backup = sel.backup if ok(sel.backup) and sel.backup.contact_id != sel.primary.contact_id else None
+    if backup is not None and (seniority or {}).get(backup.contact_id) == "individual":
+        backup = None  # an individual contributor can't buy; no backup beats a filler one
     return ContactSelection(primary=sel.primary, backup=backup, no_suitable_contact=False)
 
 

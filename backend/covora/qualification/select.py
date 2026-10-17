@@ -114,7 +114,8 @@ async def select_contacts(campaign_id: UUID, company_ids: list[UUID], *, ctx: Ru
                     schema=ContactSelection,
                 )
                 try:
-                    selection = validate_selection(step.output, set(by_id), set(), emails)
+                    seniority = {cid: c.seniority for cid, c in by_id.items()}
+                    selection = validate_selection(step.output, set(by_id), set(), emails, seniority=seniority)
                     break
                 except ValueError as exc:
                     sp.set("invalid_pick", str(exc))

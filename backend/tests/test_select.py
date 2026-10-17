@@ -55,3 +55,15 @@ async def test_funnel_counts(select_env, session):
     funnel = await campaign_funnel(session, select_env.campaign_id)
     assert funnel["rejected"] == 2 and funnel["no_contact"] == 1 and funnel["prospects"] >= 3
     assert funnel["candidates"] >= funnel["qualified"] >= funnel["with_contacts"]
+
+
+def test_individual_contributor_never_backup():
+    from covora.qualification.schemas import ContactSelection, Pick
+    from covora.qualification.validate import validate_selection
+
+    sel = ContactSelection(
+        primary=Pick(contact_id="a", reason="r", confidence="high"),
+        backup=Pick(contact_id="b", reason="r", confidence="low"),
+    )
+    out = validate_selection(sel, {"a", "b"}, set(), {}, seniority={"a": "c_level", "b": "individual"})
+    assert out.primary.contact_id == "a" and out.backup is None
