@@ -1,4 +1,4 @@
-import type { IcpVersionOut, ParseResponse, StructuredICP } from "../api/types";
+import type { IcpVersionOut, ParseResponse, RunDetail, StructuredICP } from "../api/types";
 
 // Mirrors backend/tests/fixtures_icp.py.
 export const EXAMPLE_ICP: StructuredICP = {
@@ -56,4 +56,84 @@ export const VERSION: IcpVersionOut = {
   parent_id: null,
   created_by: "user",
   created_at: "2026-10-17T12:00:00Z",
+};
+
+const SUPER_MODEL = "nvidia/nemotron-3-super-120b-a12b";
+
+export const RUN_DETAIL: RunDetail = {
+  run: {
+    id: "r1",
+    kind: "icp",
+    status: "succeeded",
+    started_at: "2026-10-17T12:00:00Z",
+    ended_at: "2026-10-17T12:00:01.200Z",
+    duration_ms: 1200,
+    error: null,
+    llm_calls: 1,
+    prompt_tokens: 900,
+    completion_tokens: 400,
+    est_cost_usd: null,
+  },
+  spans: [
+    {
+      id: "s-agent",
+      parent_span_id: null,
+      name: "icp:icp_parsing",
+      kind: "agent",
+      status: "ok",
+      started_at: "2026-10-17T12:00:00Z",
+      duration_ms: 1150,
+      attributes: {},
+      error: null,
+    },
+    {
+      id: "s-llm",
+      parent_span_id: "s-agent",
+      name: "llm:icp_parsing",
+      kind: "llm",
+      status: "ok",
+      started_at: "2026-10-17T12:00:00.050Z",
+      duration_ms: 1100,
+      attributes: {},
+      error: null,
+    },
+  ],
+  llm_calls: [
+    {
+      id: "c1",
+      span_id: "s-llm",
+      task: "icp_parsing",
+      routing_mode: "fixed",
+      requested_model: SUPER_MODEL,
+      actual_model: SUPER_MODEL,
+      routing_reason: "fixed: icp_parsing → super",
+      fallback_used: false,
+      fallback_reason: null,
+      prompt_tokens: 900,
+      completion_tokens: 400,
+      latency_ms: 1100,
+      est_cost_usd: null,
+      output_valid: true,
+      retries: 0,
+      created_at: "2026-10-17T12:00:01Z",
+    },
+  ],
+};
+
+export const FAILED_RUN_DETAIL: RunDetail = {
+  run: { ...RUN_DETAIL.run, id: "r2", status: "failed", error: "Every model attempt failed" },
+  spans: [
+    {
+      id: "s-fail",
+      parent_span_id: null,
+      name: "llm:icp_parsing",
+      kind: "llm",
+      status: "error",
+      started_at: "2026-10-17T12:00:00Z",
+      duration_ms: 900,
+      attributes: {},
+      error: "503 Service Unavailable",
+    },
+  ],
+  llm_calls: [],
 };
