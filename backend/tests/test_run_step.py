@@ -95,3 +95,19 @@ async def test_episode_written(step_env):
         )
     )
     assert r.episode_id is not None
+
+
+async def test_memory_failure_degrades_to_no_memories(step_env):
+    step_env.backend.fail_embeddings = True
+    step_env.backend.queue(SUPER, '{"value": 3}')
+    r = await run_step(
+        **step_env.kwargs(
+            agent="icp",
+            task=TaskType.icp_parsing,
+            queries=[MemoryQuery("episodic", ["icp_edit"], "real", "anything", "r")],
+            build_messages=lambda wm: [{"role": "user", "content": wm.render_memories()}],
+            schema=Answer,
+            episode=lambda out, wm: NewMemory("episodic", "selection_episode", "research", "x", {}, []),
+        )
+    )
+    assert r.output.value == 3 and r.working_memory.memories == [] and r.episode_id is None

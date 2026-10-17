@@ -7,7 +7,7 @@ from collections import defaultdict, deque
 
 from pydantic import BaseModel
 
-from covora.gateway.backend import ChatResponse
+from covora.gateway.backend import BackendError, ChatResponse
 
 NANO = "nvidia/nemotron-nano-3-30b-a3b"
 SUPER = "nvidia/nemotron-3-super-120b-a12b"
@@ -32,6 +32,7 @@ def fake_embedding(text: str, dim: int) -> list[float]:
 class FakeChatBackend:
     def __init__(self, dim: int = 2048) -> None:
         self.dim = dim
+        self.fail_embeddings = False
         self.calls: list[dict] = []
         self.embed_calls: list[dict] = []
         self._queues: dict[str, deque] = defaultdict(deque)
@@ -57,4 +58,6 @@ class FakeChatBackend:
 
     async def embed(self, *, model, texts, input_type, timeout_s) -> list[list[float]]:
         self.embed_calls.append({"model": model, "texts": list(texts), "input_type": input_type})
+        if self.fail_embeddings:
+            raise BackendError("HTTP 404: embedding model not found", status=404, retryable=False)
         return [fake_embedding(t, self.dim) for t in texts]

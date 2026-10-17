@@ -1,5 +1,6 @@
 """Saving ICP versions, and remembering the user's corrections as episodic memory (spec §7.2)."""
 
+import contextlib
 from dataclasses import asdict, dataclass
 from typing import Any, Literal
 from uuid import UUID
@@ -7,6 +8,7 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from covora.gateway.gateway import GatewayError
 from covora.icp.models import IcpVersion
 from covora.icp.schemas import StructuredICP, Tagged
 from covora.memory.store import MemoryStore, NewMemory
@@ -140,15 +142,17 @@ async def save_icp_version(
     await session.commit()
     await session.refresh(version)
     if changes:
-        await memory.write(
-            NewMemory(
-                kind="episodic",
-                subtype="icp_edit",
-                source="research",
-                summary=summarize_changes(changes),
-                payload={"changes": [asdict(c) for c in changes]},
-                source_refs=[{"table": "icp_version", "id": str(version.id)}],
-            ),
-            ctx,
-        )
+        # The version is already saved; a memory failure is traced on its own span and must not undo it.
+        with contextlib.suppress(GatewayError):
+            await memory.write(
+                NewMemory(
+                    kind="episodic",
+                    subtype="icp_edit",
+                    source="research",
+                    summary=summarize_changes(changes),
+                    payload={"changes": [asdict(c) for c in changes]},
+                    source_refs=[{"table": "icp_version", "id": str(version.id)}],
+                ),
+                ctx,
+            )
     return version

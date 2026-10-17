@@ -12,7 +12,7 @@ from uuid import UUID
 from pydantic import BaseModel
 
 from covora.config import Settings
-from covora.gateway.gateway import GatewayResult, ModelGateway
+from covora.gateway.gateway import GatewayError, GatewayResult, ModelGateway
 from covora.gateway.tasks import TaskType
 from covora.memory.store import MemoryQuery, MemoryStore, NewMemory, RetrievedMemory
 from covora.observability.tracing import RunContext, span
@@ -110,11 +110,16 @@ async def run_step(
     attrs = {"agent": agent, "task": str(task), "goal": goal, "inputs": sorted(inputs)}
     async with span(ctx, f"{agent}:{task}", "agent", attrs) as sp:
         # Retrieve: long-term memory → working memory, within per-kind budgets.
+        # Memory helps but must never block a decision: if retrieval fails, continue without it.
         enabled = settings.memory_enabled(agent)
         found: list[RetrievedMemory] = []
         if enabled:
-            for query in queries:
-                found.extend(await memory.retrieve(query, sp.ctx))
+            try:
+                for query in queries:
+                    found.extend(await memory.retrieve(query, sp.ctx))
+            except GatewayError as exc:
+                found = []
+                sp.set("memory_error", str(exc))
         kept = _fit_to_budgets(found, budgets or DEFAULT_BUDGETS)
         await memory.record_reads(sp.id, kept)
         wm = WorkingMemory(agent=agent, goal=goal, inputs=inputs, memories=kept)
@@ -129,7 +134,10 @@ async def run_step(
         if episode is not None:
             new_memory = episode(result.output, wm)
             if new_memory is not None:
-                episode_id = await memory.write(new_memory, sp.ctx)
+                try:
+                    episode_id = await memory.write(new_memory, sp.ctx)
+                except GatewayError as exc:
+                    sp.set("episode_error", str(exc))
     return StepResult(
         output=result.output, working_memory=wm, gateway=result, episode_id=episode_id, span_id=sp.id
     )
