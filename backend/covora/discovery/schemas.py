@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
@@ -44,3 +44,42 @@ def clean_strings_except(data: Any, keep: set[str]) -> Any:
     if isinstance(data, list):
         return [clean_strings_except(v, keep) for v in data]
     return clean_strings(data)
+
+
+FactField = Literal[
+    "employee_count", "revenue_usd", "industry", "location", "description", "founded_year", "recent_event"
+]
+
+
+class ExtractedFact(BaseModel):
+    field: FactField
+    value: str
+    source_url: str
+    quote: str = ""
+    label: Literal["verified", "unverified"]
+
+    @field_validator("value", mode="before")
+    @classmethod
+    def _value_text(cls, value: Any) -> Any:
+        return clean_text(str(value)) if isinstance(value, int | float | str) else value
+
+
+class ExtractedFacts(BaseModel):
+    facts: list[ExtractedFact]
+
+
+class CriterionJudgment(BaseModel):
+    criterion: str
+    status: Literal["met", "not_met", "unknown"]
+    fact_ids: list[str] = []
+
+
+class FitJudgment(BaseModel):
+    criteria: list[CriterionJudgment]
+    confidence: Literal["high", "medium", "low"]
+    reason: str = Field(max_length=400)
+
+    @field_validator("reason", mode="before")
+    @classmethod
+    def _clean_reason(cls, value: Any) -> Any:
+        return clean_text(value)[:400] if isinstance(value, str) else value

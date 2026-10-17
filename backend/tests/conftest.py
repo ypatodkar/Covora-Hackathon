@@ -294,3 +294,27 @@ async def discovery_env(session, workspace, settings, sessionmaker, mock_researc
         workspace=workspace,
         settings=settings,
     )
+
+
+@pytest.fixture
+async def enrich_env(discovery_env):
+    from sqlalchemy import update
+
+    from covora.discovery.discover import discover_wave
+    from covora.discovery.models import CampaignCompany
+
+    env = discovery_env
+    wave = await discover_wave(env.campaign_id, wave=1, ctx=env.ctx, services=env.services)
+    env.candidate_ids = wave.new_company_ids
+
+    async def reset_status(company_ids):
+        async with env.sessionmaker() as s:
+            await s.execute(
+                update(CampaignCompany)
+                .where(CampaignCompany.campaign_id == env.campaign_id, CampaignCompany.company_id.in_(company_ids))
+                .values(status="candidate")
+            )
+            await s.commit()
+
+    env.reset_status = reset_status
+    return env

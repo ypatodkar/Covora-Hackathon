@@ -80,3 +80,27 @@ async def candidate_domains(sessionmaker, campaign_id: UUID) -> list[str]:
     )
     async with sessionmaker() as s:
         return list((await s.execute(stmt)).scalars())
+
+
+async def campaign_companies_by_domain(sessionmaker, campaign_id: UUID) -> dict:
+    from covora.discovery.models import CampaignCompany, Company
+
+    stmt = (
+        select(Company.domain, CampaignCompany)
+        .join(CampaignCompany, CampaignCompany.company_id == Company.id)
+        .where(CampaignCompany.campaign_id == campaign_id)
+    )
+    async with sessionmaker() as s:
+        return dict((await s.execute(stmt)).all())
+
+
+async def facts_for(sessionmaker, workspace_id: UUID, domain: str) -> list:
+    from covora.discovery.models import Company, Fact
+
+    stmt = (
+        select(Fact)
+        .join(Company, Fact.company_id == Company.id)
+        .where(Company.workspace_id == workspace_id, Company.domain == domain)
+    )
+    async with sessionmaker() as s:
+        return list((await s.execute(stmt)).scalars())

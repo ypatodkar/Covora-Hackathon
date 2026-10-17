@@ -1,9 +1,9 @@
 """Code checks on what the model extracted: nothing that isn't in the sources survives."""
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 
 from covora.discovery.domains import is_blocked, normalize_domain
-from covora.discovery.schemas import ExtractedCompany
+from covora.discovery.schemas import ExtractedCompany, ExtractedFact
 from covora.research.provider import SearchResult
 
 
@@ -28,4 +28,27 @@ def validate_companies(
         source_url = company.source_url if company.source_url in result_urls else source.url
         kept.append(ExtractedCompany(name=company.name or domain, domain=domain, source_url=source_url))
         seen.add(domain)
+    return kept
+
+
+_NUMERIC_FIELDS = {"employee_count", "revenue_usd"}
+
+
+def _normalized(text: str) -> str:
+    return " ".join(text.split()).lower()
+
+
+def validate_facts(extracted: list[ExtractedFact], pages: Mapping[str, str]) -> list[ExtractedFact]:
+    """Keep facts from given pages; `verified` only with a verbatim quote; numbers only when verified."""
+    normalized = {url: _normalized(text) for url, text in pages.items()}
+    kept: list[ExtractedFact] = []
+    for fact in extracted:
+        page = normalized.get(fact.source_url)
+        if page is None:
+            continue
+        quote = fact.quote.strip()
+        verified = bool(quote) and _normalized(quote) in page
+        if fact.field in _NUMERIC_FIELDS and not verified:
+            continue  # never keep an estimated headcount or revenue
+        kept.append(fact.model_copy(update={"quote": quote, "label": "verified" if verified else "unverified"}))
     return kept
