@@ -201,3 +201,18 @@ async def icp_env(session, workspace, fake_backend, gateway, memory, ctx, settin
     return IcpEnv(
         ws=ws, backend=fake_backend, gateway=gateway, memory=memory, ctx=ctx, settings=settings, session=session
     )
+
+
+@pytest.fixture
+async def api(settings, fake_backend, sessionmaker):
+    """HTTP client for the app, with the fake model backend. Depends on sessionmaker so tables get cleaned."""
+    import httpx
+    from asgi_lifespan import LifespanManager
+
+    from covora.api.app import create_app
+
+    app = create_app(settings, backend=fake_backend)
+    async with LifespanManager(app) as manager:
+        transport = httpx.ASGITransport(app=manager.app)
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
