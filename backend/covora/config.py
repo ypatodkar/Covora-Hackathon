@@ -23,8 +23,8 @@ class Settings(BaseSettings):
 
     nvidia_api_key: SecretStr | None = None
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"
-    nvidia_structured_mode: Literal["guided_json", "response_format", "none"] = "guided_json"
-    nemotron_nano_model: str = "nvidia/nemotron-nano-3-30b-a3b"
+    nvidia_structured_mode: Literal["guided_json", "response_format", "none"] = "response_format"
+    nemotron_nano_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
     nemotron_super_model: str = "nvidia/nemotron-3-super-120b-a12b"
     nemotron_embed_model: str = "nvidia/nemotron-3-embed-1b"
     nemotron_embed_dim: int = 2048
@@ -35,6 +35,8 @@ class Settings(BaseSettings):
     nano_concurrency: int = 8
     super_concurrency: int = 4
     retry_base_delay_s: float = 1.0
+    # Tasks that run with model reasoning on (default: none; measured 4x slower with no quality gain).
+    reasoning_tasks: list[str] = []
     model_prices: dict[str, ModelPriceConfig] = {}
     log_llm_payloads: bool = True
 

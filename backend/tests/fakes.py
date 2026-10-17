@@ -9,7 +9,7 @@ from pydantic import BaseModel
 
 from covora.gateway.backend import BackendError, ChatResponse
 
-NANO = "nvidia/nemotron-nano-3-30b-a3b"
+NANO = "nvidia/nemotron-3.5-lightning-30b-a3b"
 SUPER = "nvidia/nemotron-3-super-120b-a12b"
 MSGS = [{"role": "user", "content": "x"}]
 

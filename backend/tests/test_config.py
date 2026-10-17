@@ -4,7 +4,7 @@ from covora.config import Settings
 def test_defaults(monkeypatch):
     s = Settings(_env_file=None)
     assert s.routing_mode == "fixed"
-    assert s.nemotron_nano_model == "nvidia/nemotron-nano-3-30b-a3b"
+    assert s.nemotron_nano_model == "nvidia/nemotron-3.5-lightning-30b-a3b"
     assert s.nemotron_super_model == "nvidia/nemotron-3-super-120b-a12b"
     assert s.database_url.endswith("@localhost:5434/covora")
 

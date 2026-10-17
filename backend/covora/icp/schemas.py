@@ -1,8 +1,10 @@
 """Structured ICP (spec §9.1). Every tagged value records whether the user stated it or the model inferred it."""
 
-from typing import Generic, Literal, TypeVar
+from typing import Any, Generic, Literal, TypeVar
 
 from pydantic import BaseModel, model_validator
+
+from covora.text import clean_strings
 
 Origin = Literal["stated", "inferred"]
 V = TypeVar("V")
@@ -53,3 +55,8 @@ class StructuredICP(BaseModel):
     buyer_map: BuyerMap = BuyerMap()
     assumptions: list[str] = []
     search_queries: list[str] = []
+
+    @model_validator(mode="before")
+    @classmethod
+    def _clean(cls, data: Any) -> Any:
+        return clean_strings(data) if isinstance(data, dict) else data

@@ -13,9 +13,7 @@ CHAT_OK = {
     "object": "chat.completion",
     "created": 0,
     "model": "m",
-    "choices": [
-        {"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": '{"ok": true}'}}
-    ],
+    "choices": [{"index": 0, "finish_reason": "stop", "message": {"role": "assistant", "content": '{"ok": true}'}}],
     "usage": {"prompt_tokens": 3, "completion_tokens": 4, "total_tokens": 7},
 }
 CHAT_WITH_REASONING_CONTENT = copy.deepcopy(CHAT_OK)
@@ -24,11 +22,28 @@ CHAT_WITH_REASONING_CONTENT["choices"][0]["message"]["reasoning_content"] = "hid
 
 @pytest.fixture
 def nvidia_with_transport(settings):
-    def build(handler):
+    def build(handler, mode=None):
         client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
-        return NvidiaBackend(settings, http_client=client)
+        s = settings if mode is None else settings.model_copy(update={"nvidia_structured_mode": mode})
+        return NvidiaBackend(s, http_client=client)
 
     return build
+
+
+async def test_sends_response_format_by_default(nvidia_with_transport):
+    seen = {}
+
+    def handler(req):
+        seen.update(json.loads(req.content))
+        return httpx.Response(200, json=CHAT_OK)
+
+    backend = nvidia_with_transport(handler)
+    await backend.chat(model="m", messages=MSGS, json_schema={"type": "object"}, reasoning=False, timeout_s=5)
+    assert seen["response_format"] == {
+        "type": "json_schema",
+        "json_schema": {"name": "output", "schema": {"type": "object"}},
+    }
+    assert "nvext" not in seen
 
 
 async def test_maps_429_to_retryable(nvidia_with_transport):
@@ -47,7 +62,7 @@ async def test_sends_guided_json_and_thinking_flag(nvidia_with_transport):
         seen.update(json.loads(req.content))
         return httpx.Response(200, json=CHAT_OK)
 
-    backend = nvidia_with_transport(handler)
+    backend = nvidia_with_transport(handler, mode="guided_json")
     await backend.chat(model="m", messages=MSGS, json_schema={"type": "object"}, reasoning=True, timeout_s=5)
     assert seen["nvext"]["guided_json"] == {"type": "object"}
     assert seen["chat_template_kwargs"] == {"enable_thinking": True}

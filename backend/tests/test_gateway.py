@@ -61,3 +61,13 @@ async def test_embed_logs_call(gateway, ctx, sessionmaker, settings):
     vecs = await gateway.embed(["a b", "c d"], ctx=ctx, input_type="passage")
     assert len(vecs) == 2 and len(vecs[0]) == settings.nemotron_embed_dim
     assert (await latest_llm_call(sessionmaker)).task == "embedding"
+
+
+async def test_reasoning_off_by_default_with_per_task_opt_in(fake_backend, settings, ctx):
+    from covora.gateway.gateway import ModelGateway
+
+    fake_backend.queue(SUPER, '{"value": 1}', '{"value": 2}')
+    await ModelGateway(fake_backend, settings).complete(TaskType.icp_parsing, MSGS, schema=Answer, ctx=ctx)
+    opted_in = settings.model_copy(update={"reasoning_tasks": ["icp_parsing"]})
+    await ModelGateway(fake_backend, opted_in).complete(TaskType.icp_parsing, MSGS, schema=Answer, ctx=ctx)
+    assert [c["reasoning"] for c in fake_backend.calls] == [False, True]

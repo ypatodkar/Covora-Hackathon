@@ -50,5 +50,6 @@ _SUPER = {
 
 TASK_TIERS: dict[TaskType, Tier] = {t: Tier.nano for t in _NANO} | {t: Tier.super for t in _SUPER}
 
-# Reasoning on/off by default per tier (spec §15.5).
-REASONING_DEFAULT: dict[Tier, bool] = {Tier.nano: False, Tier.super: True}
+# Reasoning off by default for both tiers; opt in per task with REASONING_TASKS. On the hosted API,
+# Super with reasoning on was ~4x slower on ICP parsing with no quality gain (Plan 1 live check).
+REASONING_DEFAULT: dict[Tier, bool] = {Tier.nano: False, Tier.super: False}

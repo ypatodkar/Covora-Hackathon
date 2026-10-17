@@ -15,6 +15,7 @@ from covora.gateway.backend import BackendError, ChatBackend, ChatResponse
 from covora.gateway.output import extract_json, strip_reasoning
 from covora.gateway.pricing import estimate_cost
 from covora.gateway.router import ModelIds, choose_route, other_tier
+from covora.gateway.schema import output_schema
 from covora.gateway.tasks import REASONING_DEFAULT, TaskType, Tier
 from covora.observability.models import LlmCall
 from covora.observability.redaction import redact
@@ -100,7 +101,7 @@ class ModelGateway:
             for index, tier in enumerate((decision.tier, other_tier(decision.tier))):
                 model = self._models.for_tier(tier)
                 actual_model = model
-                use_reasoning = REASONING_DEFAULT[tier] if reasoning is None else reasoning
+                use_reasoning = reasoning if reasoning is not None else self._reasoning_default(task, tier)
                 try:
                     output, text = await self._attempt(tier, model, messages, schema, use_reasoning, usage)
                     break
@@ -153,6 +154,9 @@ class ModelGateway:
             llm_call_id=call_id,
         )
 
+    def _reasoning_default(self, task: TaskType, tier: Tier) -> bool:
+        return str(task) in self._settings.reasoning_tasks or REASONING_DEFAULT[tier]
+
     async def embed(
         self, texts: list[str], *, ctx: RunContext, input_type: Literal["query", "passage"]
     ) -> list[list[float]]:
@@ -200,7 +204,7 @@ class ModelGateway:
         reasoning: bool,
         usage: _Usage,
     ) -> tuple[T | str, str]:
-        json_schema = schema.model_json_schema() if schema else None
+        json_schema = output_schema(schema) if schema else None
         msgs = list(messages)
         response = await self._chat_with_retries(tier, model, msgs, json_schema, reasoning, usage)
         text = strip_reasoning(response.text)
