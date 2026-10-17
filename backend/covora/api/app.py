@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from covora.api.deps import Services
 from covora.api.errors import install_error_handlers
-from covora.api.routes import health, workspace
+from covora.api.routes import health, icp, runs, workspace
 from covora.config import Settings, get_settings
 from covora.db.session import make_engine, make_sessionmaker
 from covora.gateway.backend import ChatBackend
@@ -38,7 +38,7 @@ def create_app(settings: Settings | None = None, *, backend: ChatBackend | None 
         CORSMiddleware, allow_origins=[settings.cors_origin], allow_methods=["*"], allow_headers=["*"]
     )
     install_error_handlers(app, settings)
-    for module in (health, workspace):
+    for module in (health, workspace, icp, runs):
         app.include_router(module.router, prefix="/api")
     return app
 
