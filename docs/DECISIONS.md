@@ -53,3 +53,18 @@ One line per decision. Details and reasoning are in the [design spec](superpower
 - Memory never blocks a decision: if retrieval or an episode write fails, the step continues and the failure is recorded on its span.
 - Frontend uses the Vite template's current versions (React 19, Vite 8, TypeScript 6).
 - Ruff rules pinned in `backend/pyproject.toml` (FastAPI `Depends()` defaults and intentional en dashes are allowed).
+
+## Plan 2 decisions
+
+- Campaigns run in a separate worker process (`python -m covora.worker`) that claims jobs from a Postgres `job` table (`FOR UPDATE SKIP LOCKED`). Job handlers live in `covora.jobs.registry`.
+- The campaign pipeline is a LangGraph `StateGraph`, checkpointed with `AsyncPostgresSaver` in its own `langgraph` schema. Its tables are created once at worker start, because `setup()` uses `CREATE INDEX CONCURRENTLY`, which waits on any open transaction.
+- Campaign jobs are never auto-retried. **Retry** resumes from the last checkpoint, so discovery isn't paid for twice.
+- Fit rules are stricter than the spec's baseline: a stated soft criterion that isn't met (e.g. company size) caps the score at 50, below the qualifying bar of 60.
+- Fact extraction uses one slot per fact type (value or null). Numbers are kept only with a verbatim quote, and facts with no value are dropped.
+- Emails are located on any of a company's sources. One counts as verified when the person's name appears on the same page.
+- An individual contributor is never picked as the backup contact.
+- Each discovery wave scores about twice the companies still needed, capped by `MAX_CANDIDATES_PER_WAVE`.
+- Fact extraction only sees the company's own pages plus search results that name it.
+- Live updates use polling; the spec's Server-Sent Events are deferred to Plan 6.
+- `RESEARCH_PROVIDER=mock` switches research to a fixture web of six fictional `.test` companies, labeled synthetic.
+- Every ORM model is imported in every process (`covora.db.all_models`), so foreign keys always resolve.
