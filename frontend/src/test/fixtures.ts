@@ -1,4 +1,4 @@
-import type { IcpVersionOut, ParseResponse, RunDetail, StructuredICP } from "../api/types";
+import type { IcpVersionOut, ParseResponse, RunDetail, StructuredICP, WorkspaceSettings } from "../api/types";
 
 // Mirrors backend/tests/fixtures_icp.py.
 export const EXAMPLE_ICP: StructuredICP = {
@@ -136,4 +136,9 @@ export const FAILED_RUN_DETAIL: RunDetail = {
     },
   ],
   llm_calls: [],
+};
+
+export const SETTINGS: WorkspaceSettings = {
+  goals: { goal_type: "positive_replies", target: 10, expected_positive_rate: 0.01, meetings_per_positive: 0.5 },
+  sending: { daily_gmail_cap: 100, first_batch_size: 10, no_reply_window_minutes: 10 },
 };

@@ -146,3 +146,23 @@ export interface WorkingMemoryItem {
   reason: string;
   rank: number;
 }
+
+export type GoalType = "positive_replies" | "meetings";
+
+export interface Goals {
+  goal_type: GoalType;
+  target: number;
+  expected_positive_rate: number;
+  meetings_per_positive: number;
+}
+
+export interface SendingSettings {
+  daily_gmail_cap: number;
+  first_batch_size: number;
+  no_reply_window_minutes: number;
+}
+
+export interface WorkspaceSettings {
+  goals: Goals;
+  sending: SendingSettings;
+}
