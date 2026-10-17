@@ -318,3 +318,17 @@ async def enrich_env(discovery_env):
 
     env.reset_status = reset_status
     return env
+
+
+@pytest.fixture
+async def people_env(enrich_env):
+    from covora.discovery.enrich import enrich_and_score
+    from tests.helpers import campaign_companies_by_domain
+
+    env = enrich_env
+    env.qualified_ids = await enrich_and_score(env.campaign_id, env.candidate_ids, ctx=env.ctx, services=env.services)
+    rows = await campaign_companies_by_domain(env.sessionmaker, env.campaign_id)
+    ids = {domain: row.company_id for domain, row in rows.items()}
+    env.company_id = ids.__getitem__
+    env.domain_of = {v: k for k, v in ids.items()}.__getitem__
+    return env

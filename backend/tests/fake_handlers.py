@@ -88,3 +88,43 @@ def fit_judgment(inp: dict) -> dict:
 
 
 STANDARD_HANDLERS.update({"ExtractedFacts": extracted_facts, "FitJudgment": fit_judgment})
+
+
+_EMAIL = re.compile(r"[\w.+-]+@[\w-]+(?:\.[\w-]+)+")
+_ROLES = {
+    "owner": ("executive", "owner"), "president": ("executive", "owner"), "coo": ("operations", "c_level"),
+    "ceo": ("executive", "c_level"), "operations manager": ("operations", "manager"),
+    "partnerships": ("partnerships", "director"), "plant manager": ("operations", "manager"),
+}  # fmt: skip
+
+
+def _role(title: str) -> tuple[str, str]:
+    lower = title.lower()
+    return next((v for k, v in _ROLES.items() if k in lower), ("other", "individual"))
+
+
+def extracted_people(inp: dict) -> dict:
+    people, seen = [], set()
+    linkedin = [s["url"] for s in inp["sources"] if "linkedin.com/in/" in s["url"]]
+    for source in inp["sources"]:
+        for line in source["text"].splitlines():
+            m = re.match(r"\s*([A-Z][a-z]+ [A-Z][a-z]+) — ([^,]+)(?:, (.*))?$", line)
+            if not m or m.group(1) in seen:
+                continue
+            name, title = m.group(1), m.group(2).strip()
+            email = _EMAIL.search(m.group(3) or "")
+            function, seniority = _role(title)
+            person = {"full_name": name, "title": title, "function": function, "seniority": seniority,
+                      "source_url": source["url"], "email": email.group(0) if email else None,
+                      "linkedin_url": next((u for u in linkedin if name.split()[0].lower() in u), None)}  # fmt: skip
+            if name == "Mark Ellison":
+                person["email"] = "mark@ohio-precision.test"  # invented: not in any source
+            people.append(person)
+            seen.add(name)
+    if inp["sources"]:
+        people.append({"full_name": "Zed Phantom", "title": "COO", "function": "operations", "seniority": "c_level",
+                       "source_url": inp["sources"][0]["url"]})  # fmt: skip
+    return {"people": people}
+
+
+STANDARD_HANDLERS["ExtractedPeople"] = extracted_people

@@ -49,6 +49,8 @@ class Settings(BaseSettings):
     youcom_contents_price_usd: float = 0.001
     youcom_cache_ttl_days: int = 14
     youcom_timeout_s: float = 30.0
+    # You.com honors site: filters (live check 2026-10-17); people searches use site:linkedin.com/in.
+    youcom_site_operator: bool = True
 
     # Research: "youcom" for real web research, "mock" for the fixture web (development; labeled synthetic).
     research_provider: Literal["youcom", "mock"] = "youcom"

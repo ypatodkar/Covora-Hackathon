@@ -1,0 +1,30 @@
+from typing import Any, Literal
+
+from pydantic import BaseModel, model_validator
+
+from covora.discovery.schemas import clean_strings_except
+
+Function = Literal[
+    "executive", "operations", "partnerships", "sales", "marketing", "finance", "engineering", "hr", "other"
+]
+Seniority = Literal["owner", "c_level", "vp", "director", "manager", "individual"]
+_VERBATIM = {"email", "linkedin_url", "source_url", "contact_id"}
+
+
+class ExtractedPerson(BaseModel):
+    full_name: str
+    title: str
+    function: Function = "other"
+    seniority: Seniority = "individual"
+    source_url: str
+    email: str | None = None
+    linkedin_url: str | None = None
+
+
+class ExtractedPeople(BaseModel):
+    people: list[ExtractedPerson]
+
+    @model_validator(mode="before")
+    @classmethod
+    def _clean(cls, data: Any) -> Any:
+        return clean_strings_except(data, _VERBATIM)

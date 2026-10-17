@@ -104,3 +104,16 @@ async def facts_for(sessionmaker, workspace_id: UUID, domain: str) -> list:
     )
     async with sessionmaker() as s:
         return list((await s.execute(stmt)).scalars())
+
+
+async def contacts_by_name(sessionmaker, workspace_id: UUID, domain: str) -> dict:
+    from covora.discovery.models import Company
+    from covora.qualification.models import Contact
+
+    stmt = (
+        select(Contact)
+        .join(Company, Contact.company_id == Company.id)
+        .where(Company.workspace_id == workspace_id, Company.domain == domain)
+    )
+    async with sessionmaker() as s:
+        return {c.full_name: c for c in (await s.execute(stmt)).scalars()}
