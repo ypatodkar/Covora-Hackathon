@@ -15,7 +15,7 @@ This version is a hackathon demo built on simulation: research is real, outreach
 
 ```bash
 cp .env.example .env            # then fill in NVIDIA_API_KEY (and YDC_API_KEY)
-docker compose up -d db         # Postgres on localhost:5433
+docker compose up -d db         # Postgres on localhost:5434
 cd backend && uv sync && uv run alembic upgrade head
 cd ../frontend && npm install
 ```

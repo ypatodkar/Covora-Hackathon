@@ -19,7 +19,7 @@ class ModelPriceConfig(BaseModel):
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(env_file=REPO_ROOT / ".env", extra="ignore")
 
-    database_url: str = "postgresql+psycopg://covora:covora@localhost:5433/covora"
+    database_url: str = "postgresql+psycopg://covora:covora@localhost:5434/covora"
 
     nvidia_api_key: SecretStr | None = None
     nvidia_base_url: str = "https://integrate.api.nvidia.com/v1"

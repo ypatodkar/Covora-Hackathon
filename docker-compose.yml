@@ -1,12 +1,13 @@
 services:
   db:
-    image: pgvector/pgvector:pg16
+    build: ./docker/db
+    image: covora-db:pg16
     environment:
       POSTGRES_USER: covora
       POSTGRES_PASSWORD: covora
       POSTGRES_DB: covora
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - covora_pg:/var/lib/postgresql/data
       - ./docker/init:/docker-entrypoint-initdb.d

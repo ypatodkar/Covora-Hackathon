@@ -6,7 +6,7 @@ def test_defaults(monkeypatch):
     assert s.routing_mode == "fixed"
     assert s.nemotron_nano_model == "nvidia/nemotron-nano-3-30b-a3b"
     assert s.nemotron_super_model == "nvidia/nemotron-3-super-120b-a12b"
-    assert s.database_url.endswith("@localhost:5433/covora")
+    assert s.database_url.endswith("@localhost:5434/covora")
 
 
 def test_secret_not_in_repr(monkeypatch):

@@ -37,4 +37,4 @@ One line per decision. Details and reasoning are in the [design spec](superpower
 
 ## Implementation decisions
 
-- Docker Postgres on host port 5433 (5432 is taken by a local Postgres); frontend dev server on 5180 (5173 is taken).
+- Docker Postgres on host port 5434 (5432 and 5433 are taken by other local Postgres servers); frontend dev server on 5180 (5173 is taken).
