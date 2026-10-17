@@ -30,3 +30,19 @@ async def test_rerun_does_not_duplicate_candidates(discovery_env):
         )
     domains = await candidate_domains(discovery_env.sessionmaker, discovery_env.campaign_id)
     assert len(domains) == len(set(domains))
+
+
+async def test_wave_respects_candidate_limit(discovery_env):
+    r = await discover_wave(
+        discovery_env.campaign_id, wave=1, ctx=discovery_env.ctx, services=discovery_env.services, limit=2
+    )
+    assert len(r.new_company_ids) == 2
+    assert len(await candidate_domains(discovery_env.sessionmaker, discovery_env.campaign_id)) == 2
+
+
+def test_wave_limit_scales_with_what_is_still_needed():
+    from covora.graphs.campaign import wave_candidate_limit
+
+    assert wave_candidate_limit(target_companies=4, qualified=0, cap=40) == 8
+    assert wave_candidate_limit(target_companies=4, qualified=3, cap=40) == 5
+    assert wave_candidate_limit(target_companies=1000, qualified=0, cap=40) == 40

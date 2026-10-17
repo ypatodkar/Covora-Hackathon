@@ -52,6 +52,11 @@ def stop_reason_for(
     return None
 
 
+def wave_candidate_limit(*, target_companies: int, qualified: int, cap: int) -> int:
+    """New candidates worth scoring this wave: about twice what's still needed (the cost model's margin)."""
+    return min(cap, max(5, 2 * (target_companies - qualified)))
+
+
 def route_after_scoring(state: CampaignState, **kw) -> Literal["discover_companies", "find_people"]:
     return "find_people" if stop_reason_for(state, **kw) else "discover_companies"
 
@@ -93,9 +98,17 @@ def build_campaign_graph(services: Services, checkpointer):
     async def discover_companies(state: CampaignState, config: RunnableConfig) -> dict:
         wave = state["wave"] + 1
         stop = state.get("stop_reason")
-        async with span(_ctx(config, services), "discover_companies", "stage", {"wave": wave}) as sp:
+        campaign_id = UUID(state["campaign_id"])
+        async with services.sessionmaker() as s:
+            target = (await s.get(Campaign, campaign_id)).target_prospects
+        limit = wave_candidate_limit(
+            target_companies=math.ceil(target * services.settings.contact_yield_buffer),
+            qualified=len(await _ids(services, campaign_id, "qualified")),
+            cap=services.settings.max_candidates_per_wave,
+        )
+        async with span(_ctx(config, services), "discover_companies", "stage", {"wave": wave, "limit": limit}) as sp:
             try:
-                result = await discover_wave(UUID(state["campaign_id"]), wave=wave, ctx=sp.ctx, services=services)
+                result = await discover_wave(campaign_id, wave=wave, ctx=sp.ctx, services=services, limit=limit)
                 sp.set("new_companies", len(result.new_company_ids))
                 sp.set("queries", result.queries)
             except BudgetExceeded:

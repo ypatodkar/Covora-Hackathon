@@ -46,7 +46,9 @@ def icp_brief(icp: StructuredICP) -> dict:
     )
 
 
-async def discover_wave(campaign_id: UUID, *, wave: int, ctx: RunContext, services: Services) -> WaveResult:
+async def discover_wave(
+    campaign_id: UUID, *, wave: int, ctx: RunContext, services: Services, limit: int | None = None
+) -> WaveResult:
     settings = services.settings
     async with services.sessionmaker() as session:
         campaign = await session.get(Campaign, campaign_id)
@@ -121,7 +123,7 @@ async def discover_wave(campaign_id: UUID, *, wave: int, ctx: RunContext, servic
             ).scalars()
         )
         for found in companies:
-            if len(new_ids) >= settings.max_candidates_per_wave:
+            if len(new_ids) >= (limit or settings.max_candidates_per_wave):
                 break
             await session.execute(
                 insert(Company)
