@@ -47,6 +47,7 @@ One line per decision. Details and reasoning are in the [design spec](superpower
   - Structured output uses `response_format`; `guided_json` is rejected.
 - Schemas sent to the model have their `$ref`s inlined and every property required, because hosted structured decoding skipped `$ref`'d and optional fields.
 - Model reasoning is off by default for both tiers, with a per-task opt-in (`REASONING_TASKS`). On ICP parsing it made Super about 4× slower with no quality gain.
+- You.com honors `site:` filters (live check, 2026-10-17), so people searches use `site:linkedin.com/in` first.
 - Model strings in the ICP are cleaned of stray leading punctuation (e.g. `/owner`, `.Operations Manager`), a decoding artifact.
 - Trace spans are written when they open (status `running`) and completed when they close, so child rows can reference them and the UI can show live progress.
 - Memory never blocks a decision: if retrieval or an episode write fails, the step continues and the failure is recorded on its span.
