@@ -14,6 +14,7 @@ from covora.campaigns.service import campaign_funnel, create_campaign, latest_ru
 from covora.campaigns.sizing import CostModel, SizingEstimate, estimate_campaign, measured_cost_model
 from covora.icp.models import IcpVersion
 from covora.jobs.queue import enqueue
+from covora.outreach.arms import campaign_arms, create_arms
 from covora.research.budget import spend
 from covora.workspace.service import ensure_workspace
 from covora.workspace.settings import Goals, get_workspace_settings
@@ -30,6 +31,7 @@ class CreateCampaignRequest(BaseModel):
     name: str = Field(min_length=1, max_length=200)
     goals: Goals = Goals()
     prospect_limit: int | None = Field(None, ge=1)
+    template_ids: list[UUID] | None = Field(None, min_length=2, max_length=2)
 
 
 class CampaignOut(BaseModel):
@@ -44,6 +46,7 @@ class CampaignOut(BaseModel):
     created_at: datetime
     funnel: dict[str, int]
     latest_run_id: UUID | None
+    arms: list[dict[str, Any]] = []
 
 
 async def campaign_out(session: AsyncSession, c: Campaign) -> CampaignOut:
@@ -59,6 +62,10 @@ async def campaign_out(session: AsyncSession, c: Campaign) -> CampaignOut:
         created_at=c.created_at,
         funnel=await campaign_funnel(session, c.id),
         latest_run_id=await latest_run_id(session, c.id),
+        arms=[
+            {"key": arm.key, "template_id": str(t.id), "template_name": t.name, "length": t.length, "cta": t.cta}
+            for arm, t in await campaign_arms(session, c.id)
+        ],
     )
 
 
@@ -112,6 +119,12 @@ async def create(
         goals=body.goals,
         target_prospects=sizing.prospects_planned,
     )
+    try:
+        await create_arms(session, campaign, body.template_ids)
+    except LookupError as exc:
+        await session.delete(campaign)
+        await session.commit()
+        raise ApiError("not_found", "One of those templates does not exist.", 404) from exc
     return await campaign_out(session, campaign)
 
 
