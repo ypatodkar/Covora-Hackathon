@@ -35,3 +35,24 @@ def test_classify_email_rules():
     assert classify_email("info@x.test", "Dana Ruiz", text) == ("info@x.test", "unverified")
     assert classify_email("dana.ruiz@x.test", "Dana Ruiz", text) == ("dana.ruiz@x.test", "verified")
     assert classify_email("dr@x.test", "Dana Ruiz", text) == (None, "missing")
+
+
+def test_email_found_on_another_source_page():
+    from covora.qualification.validate import locate_email
+
+    sources = {
+        "https://www.linkedin.com/in/dana": "Dana Ruiz. Operations Manager at Ohio Precision.",
+        "https://x.test/team": "Dana Ruiz — Operations Manager, dana.ruiz@x.test",
+        "https://x.test/contact": "Write to sales@x.test",
+    }
+    assert locate_email("dana.ruiz@x.test", "Dana Ruiz", sources) == (
+        "dana.ruiz@x.test",
+        "verified",
+        "https://x.test/team",
+    )
+    assert locate_email("sales@x.test", "Dana Ruiz", sources) == (
+        "sales@x.test",
+        "unverified",
+        "https://x.test/contact",
+    )
+    assert locate_email("dr@x.test", "Dana Ruiz", sources) == (None, "missing", None)

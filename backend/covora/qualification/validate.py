@@ -77,3 +77,17 @@ def validate_selection(
         raise ValueError(f"primary pick {sel.primary.contact_id!r} is not an available candidate")
     backup = sel.backup if ok(sel.backup) and sel.backup.contact_id != sel.primary.contact_id else None
     return ContactSelection(primary=sel.primary, backup=backup, no_suitable_contact=False)
+
+
+def locate_email(email: str | None, full_name: str, sources: Mapping[str, str]) -> tuple[str | None, str, str | None]:
+    """Find the address on any source; verified needs the name on the same page. Returns (email, status, url)."""
+    if not email:
+        return None, "missing", None
+    best: tuple[str | None, str, str | None] = (None, "missing", None)
+    for url, text in sources.items():
+        found, status = classify_email(email, full_name, text)
+        if status == "verified":
+            return found, status, url
+        if status == "unverified" and best[1] == "missing":
+            best = (found, status, url)
+    return best

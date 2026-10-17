@@ -8,8 +8,9 @@ $memories
 ## Rules
 - Reply with only JSON that matches the required schema.
 - Fields: `employee_count`, `revenue_usd`, `industry`, `location`, `description`, `founded_year`, `recent_event`.
+- `value` is the fact itself, never empty. For `employee_count` and `revenue_usd`, just the number (for example `18`).
 - `source_url` must be the URL of the page the fact came from.
 - `quote` is the exact text from that page that states the fact, copied character for character. Keep it short.
 - Use `verified` only when the quote states the fact directly. Use `unverified` when you inferred it.
 - Never estimate headcount or revenue. Give `employee_count` or `revenue_usd` only when a page states the number, with the quote.
-- Skip anything about other companies mentioned on the page.
+- Skip anything about other companies mentioned on the page, and leave out fields you found nothing for.

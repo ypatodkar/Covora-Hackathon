@@ -1,5 +1,6 @@
 """Code checks on what the model extracted: nothing that isn't in the sources survives."""
 
+import re
 from collections.abc import Mapping, Sequence
 
 from covora.discovery.domains import is_blocked, normalize_domain
@@ -48,7 +49,22 @@ def validate_facts(extracted: list[ExtractedFact], pages: Mapping[str, str]) -> 
             continue
         quote = fact.quote.strip()
         verified = bool(quote) and _normalized(quote) in page
-        if fact.field in _NUMERIC_FIELDS and not verified:
-            continue  # never keep an estimated headcount or revenue
-        kept.append(fact.model_copy(update={"quote": quote, "label": "verified" if verified else "unverified"}))
+        value = fact.value.strip()
+        if fact.field in _NUMERIC_FIELDS:
+            if not verified:
+                continue  # never keep an estimated headcount or revenue
+            value = _number(value) or _number(quote) or ""
+        if not value:
+            continue  # a fact with no value says nothing
+        label = "verified" if verified else "unverified"
+        kept.append(fact.model_copy(update={"value": value, "quote": quote, "label": label}))
     return kept
+
+
+_NUMBER = re.compile(r"\d[\d,]*(?:\.\d+)?")
+
+
+def _number(text: str) -> str | None:
+    """The single number in `text` (commas removed), or None if there isn't exactly one."""
+    found = _NUMBER.findall(text)
+    return found[0].replace(",", "") if len(found) == 1 else None

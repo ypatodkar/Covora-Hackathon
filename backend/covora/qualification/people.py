@@ -15,7 +15,7 @@ from covora.memory.prompts import get_prompt
 from covora.observability.tracing import RunContext, span
 from covora.qualification.models import Contact
 from covora.qualification.schemas import ExtractedPeople
-from covora.qualification.validate import classify_email, name_key, validate_people
+from covora.qualification.validate import locate_email, name_key, validate_people
 from covora.research.provider import BudgetExceeded, ResearchError
 from covora.services import Services
 
@@ -93,8 +93,8 @@ async def find_people(
             people = validate_people(step.output.people, sources, linkedin_urls=linkedin_urls)
             contacts = []
             for person in people:
-                email, status = classify_email(person.email, person.full_name, sources[person.source_url])
-                urls = [person.source_url] + ([person.linkedin_url] if person.linkedin_url else [])
+                email, status, email_url = locate_email(person.email, person.full_name, sources)
+                urls = list(dict.fromkeys(u for u in (person.source_url, person.linkedin_url, email_url) if u))
                 contacts.append(
                     Contact(
                         company_id=company.id,
@@ -107,7 +107,7 @@ async def find_people(
                         source_urls=urls,
                         email=email,
                         email_status=status,
-                        email_source_url=person.source_url if email else None,
+                        email_source_url=email_url,
                         synthetic=company.synthetic,
                     )
                 )

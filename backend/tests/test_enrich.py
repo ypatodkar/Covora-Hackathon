@@ -54,3 +54,25 @@ async def test_judgment_with_foreign_fact_ids_is_cleaned(enrich_env):
     )
     assert [c["name"] for c in row.criteria] == ["industry", "location", "employee_range", "revenue_range"]
     assert row.criteria[0]["fact_ids"] == []
+
+
+def test_numeric_value_from_quote_and_empty_facts_dropped():
+    from covora.discovery.schemas import ExtractedFact
+    from covora.discovery.validate import validate_facts
+
+    pages = {"https://a.test/": "Our team of 18 employees runs two shifts. Founded long ago."}
+    facts = [
+        ExtractedFact(
+            field="employee_count",
+            value="",
+            source_url="https://a.test/",
+            quote="Our team of 18 employees",
+            label="verified",
+        ),
+        ExtractedFact(field="founded_year", value="", source_url="https://a.test/", quote="", label="unverified"),
+        ExtractedFact(
+            field="industry", value="metal fabrication", source_url="https://a.test/", quote="", label="unverified"
+        ),
+    ]
+    kept = validate_facts(facts, pages)
+    assert [(f.field, f.value) for f in kept] == [("employee_count", "18"), ("industry", "metal fabrication")]

@@ -8,7 +8,7 @@ $memories
 ## Rules
 - Reply with only JSON that matches the required schema.
 - Pick as `primary` the person who owns the problem the seller solves and can buy. Size matters: at small companies (roughly 1–50 people) the owner, CEO, or president often decides; at larger ones, the head of the relevant function.
-- Pick as `backup` the second-best person, or leave it null. Never pick the same person twice.
+- Pick as `backup` a second person who could also buy or champion this, or leave it null. Don't pick someone just to fill the slot, and never pick the same person twice.
 - `contact_id` must be one of the candidates' `id`s exactly.
 - If nobody fits, set `no_suitable_contact` to true and leave both picks null rather than forcing a weak pick.
 - `reason` is one sentence, written for the seller.
