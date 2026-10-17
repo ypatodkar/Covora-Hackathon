@@ -1,0 +1,158 @@
+[
+  {
+    "name": "Pain point — short",
+    "angle": "pain",
+    "length": "short",
+    "tone": "direct",
+    "cta": "question",
+    "subject_template": "Quick question about {company}",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Pain point — medium",
+    "angle": "pain",
+    "length": "medium",
+    "tone": "warm",
+    "cta": "booking-link",
+    "subject_template": "An idea for {company}'s team",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "ROI — short",
+    "angle": "roi",
+    "length": "short",
+    "tone": "direct",
+    "cta": "booking-link",
+    "subject_template": "Cutting costs at {company}",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "ROI — medium",
+    "angle": "roi",
+    "length": "medium",
+    "tone": "formal",
+    "cta": "question",
+    "subject_template": "What {company} could save",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Social proof — short",
+    "angle": "social-proof",
+    "length": "short",
+    "tone": "warm",
+    "cta": "question",
+    "subject_template": "How teams like {company}'s did it",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Social proof — medium",
+    "angle": "social-proof",
+    "length": "medium",
+    "tone": "formal",
+    "cta": "booking-link",
+    "subject_template": "What similar companies changed",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Curiosity — short",
+    "angle": "curiosity",
+    "length": "short",
+    "tone": "direct",
+    "cta": "soft",
+    "subject_template": "{first_name}, a thought",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Curiosity — medium",
+    "angle": "curiosity",
+    "length": "medium",
+    "tone": "warm",
+    "cta": "question",
+    "subject_template": "Noticed something about {company}",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Partnership — short",
+    "angle": "partnership",
+    "length": "short",
+    "tone": "warm",
+    "cta": "question",
+    "subject_template": "Working together, {company}?",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Partnership — medium",
+    "angle": "partnership",
+    "length": "medium",
+    "tone": "formal",
+    "cta": "booking-link",
+    "subject_template": "A partnership idea for {company}",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Referral ask — short",
+    "angle": "referral-ask",
+    "length": "short",
+    "tone": "direct",
+    "cta": "soft",
+    "subject_template": "Right person at {company}?",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  },
+  {
+    "name": "Referral ask — medium",
+    "angle": "referral-ask",
+    "length": "medium",
+    "tone": "warm",
+    "cta": "question",
+    "subject_template": "Who handles this at {company}?",
+    "body_template": "Hi {first_name},\n\n{personal_hook}\n\n{value_prop}\n\n{cta}\n\n{sender_name}",
+    "offering_types": [
+      "sales_call",
+      "dealer"
+    ]
+  }
+]

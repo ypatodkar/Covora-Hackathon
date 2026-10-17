@@ -42,6 +42,7 @@ class Prospect(IdTimestampMixin, Base):
     pick_reason: Mapped[str] = mapped_column(Text)
     confidence: Mapped[str] = mapped_column(String(10))
     status: Mapped[str] = mapped_column(String(20), default="selected")
+    arm_key: Mapped[str | None] = mapped_column(String(2))
     assigned_rep_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True))
     meeting_booked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     meeting_synthetic: Mapped[bool] = mapped_column(Boolean, default=False)
