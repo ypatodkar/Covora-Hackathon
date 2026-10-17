@@ -117,3 +117,18 @@ async def contacts_by_name(sessionmaker, workspace_id: UUID, domain: str) -> dic
     )
     async with sessionmaker() as s:
         return {c.full_name: c for c in (await s.execute(stmt)).scalars()}
+
+
+async def prospects_by_domain(sessionmaker, campaign_id: UUID) -> dict:
+    from collections import defaultdict
+
+    from covora.discovery.models import Company
+    from covora.qualification.models import Prospect
+
+    stmt = select(Company.domain, Prospect).join(Company, Prospect.company_id == Company.id)
+    stmt = stmt.where(Prospect.campaign_id == campaign_id)
+    out: dict = defaultdict(list)
+    async with sessionmaker() as s:
+        for domain, prospect in (await s.execute(stmt)).all():
+            out[domain].append(prospect)
+    return dict(out)

@@ -3,7 +3,15 @@
 import math
 from dataclasses import dataclass
 from typing import Literal
+from uuid import UUID
 
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from covora.campaigns.models import Campaign
+from covora.observability.models import LlmCall, Span, WorkflowRun
+from covora.qualification.models import Prospect
+from covora.research.models import ToolCall
 from covora.workspace.settings import Goals
 
 
@@ -72,4 +80,46 @@ def estimate_campaign(
         fits_budget=usd <= remaining,
         max_affordable_prospects=affordable,
         cost_model_source=cost.source,
+    )
+
+
+async def measured_cost_model(session: AsyncSession, workspace_id: UUID) -> CostModel | None:
+    """Real per-prospect averages from completed campaigns; None until there are any."""
+    complete = select(Campaign.id).where(Campaign.workspace_id == workspace_id, Campaign.status == "complete")
+    primaries = (
+        await session.execute(
+            select(func.count())
+            .select_from(Prospect)
+            .where(Prospect.campaign_id.in_(complete), Prospect.role == "primary")
+        )
+    ).scalar_one()
+    if not primaries:
+        return None
+
+    def calls(operation: str, measure):
+        return (
+            select(func.coalesce(measure, 0))
+            .select_from(ToolCall)
+            .join(Span, ToolCall.span_id == Span.id)
+            .join(WorkflowRun, Span.run_id == WorkflowRun.id)
+            .where(
+                WorkflowRun.campaign_id.in_(complete), ToolCall.operation == operation, ToolCall.cache_hit.is_(False)
+            )
+        )
+
+    searches = (await session.execute(calls("search", func.count(ToolCall.id)))).scalar_one()
+    pages = (await session.execute(calls("contents", func.sum(ToolCall.result_count)))).scalar_one()
+    llm = (
+        await session.execute(
+            select(func.count(LlmCall.id))
+            .join(Span, LlmCall.span_id == Span.id)
+            .join(WorkflowRun, Span.run_id == WorkflowRun.id)
+            .where(WorkflowRun.campaign_id.in_(complete))
+        )
+    ).scalar_one()
+    return CostModel(
+        searches_per_prospect=searches / primaries,
+        pages_per_prospect=pages / primaries,
+        model_calls_per_prospect=llm / primaries,
+        source="measured",
     )

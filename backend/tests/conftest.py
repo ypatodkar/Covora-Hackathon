@@ -332,3 +332,12 @@ async def people_env(enrich_env):
     env.company_id = ids.__getitem__
     env.domain_of = {v: k for k, v in ids.items()}.__getitem__
     return env
+
+
+@pytest.fixture
+async def select_env(people_env):
+    from covora.qualification.people import find_people
+
+    env = people_env
+    await find_people(env.campaign_id, env.qualified_ids, ctx=env.ctx, services=env.services)
+    return env

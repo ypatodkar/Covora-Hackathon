@@ -128,3 +128,26 @@ def extracted_people(inp: dict) -> dict:
 
 
 STANDARD_HANDLERS["ExtractedPeople"] = extracted_people
+
+
+def contact_selection(inp: dict) -> dict:
+    wanted = {f.lower() for f in inp["buyer_map"]["target_functions"]}
+    eligible = [
+        c
+        for c in inp["candidates"]
+        if c["function"] in wanted or any(c["function"] in w for w in wanted) or c["seniority"] in {"owner", "c_level"}
+    ]
+    if not eligible:
+        return {"primary": None, "backup": None, "no_suitable_contact": True}
+
+    def pick(c: dict) -> dict:
+        return {"contact_id": c["id"], "reason": f"{c['title']} owns this area.", "confidence": "high"}
+
+    return {
+        "primary": pick(eligible[0]),
+        "backup": pick(eligible[1]) if len(eligible) > 1 else None,
+        "no_suitable_contact": False,
+    }
+
+
+STANDARD_HANDLERS["ContactSelection"] = contact_selection

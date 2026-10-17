@@ -3,7 +3,7 @@
 import re
 from collections.abc import Mapping
 
-from covora.qualification.schemas import ExtractedPerson
+from covora.qualification.schemas import ContactSelection, ExtractedPerson, Pick
 
 _GENERIC_LOCAL_PARTS = {
     "info",
@@ -55,3 +55,25 @@ def classify_email(email: str | None, full_name: str, text: str) -> tuple[str | 
     if any(t in local for t in name_tokens) and name_key(full_name) in _normalized(text):
         return email, "verified"
     return email, "unverified"
+
+
+def validate_selection(
+    sel: ContactSelection,
+    candidate_ids: set[str],
+    suppressed_emails: set[str],
+    emails: Mapping[str, str | None],
+) -> ContactSelection:
+    """Picks must be real candidates, not suppressed, and distinct. Raises ValueError for an invalid primary."""
+    if sel.no_suitable_contact or sel.primary is None:
+        return ContactSelection(primary=None, backup=None, no_suitable_contact=True)
+
+    def ok(pick: Pick | None) -> bool:
+        if pick is None or pick.contact_id not in candidate_ids:
+            return False
+        email = emails.get(pick.contact_id)
+        return not (email and email.lower() in suppressed_emails)
+
+    if not ok(sel.primary):
+        raise ValueError(f"primary pick {sel.primary.contact_id!r} is not an available candidate")
+    backup = sel.backup if ok(sel.backup) and sel.backup.contact_id != sel.primary.contact_id else None
+    return ContactSelection(primary=sel.primary, backup=backup, no_suitable_contact=False)

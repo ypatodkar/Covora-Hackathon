@@ -11,7 +11,7 @@ from covora.api.deps import Services, get_services, get_session
 from covora.api.errors import ApiError
 from covora.campaigns.models import Campaign
 from covora.campaigns.service import campaign_funnel, create_campaign, latest_run_id
-from covora.campaigns.sizing import CostModel, SizingEstimate, estimate_campaign
+from covora.campaigns.sizing import CostModel, SizingEstimate, estimate_campaign, measured_cost_model
 from covora.icp.models import IcpVersion
 from covora.research.budget import spend
 from covora.workspace.service import ensure_workspace
@@ -69,7 +69,7 @@ async def _estimate(
     return estimate_campaign(
         goals,
         prospect_limit=prospect_limit,
-        cost=CostModel(),
+        cost=await measured_cost_model(session, ws.id) or CostModel(),
         search_price=services.settings.youcom_search_price_usd,
         page_price=services.settings.youcom_contents_price_usd,
         budget_remaining=remaining,
