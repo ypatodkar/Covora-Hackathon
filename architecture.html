@@ -300,7 +300,7 @@
       <div class="hero-pills">
         <span class="pill pill-purple">◈ RSI Loop</span>
         <span class="pill pill-blue">Implicit RLHF</span>
-        <span class="pill pill-cyan">Antigravity Agent</span>
+        <span class="pill pill-cyan">NVIDIA Session Agent</span>
         <span class="pill pill-green">6-Layer Memory</span>
       </div>
     </div>
@@ -438,7 +438,7 @@
             <div class="wf-title">Reward Computed</div>
             <ul class="wf-ul">
               <li>Scalar = Σ(flag_scores) / n</li>
-              <li><strong>Profile updated before Gemini is called</strong></li>
+              <li><strong>Profile updated before NVIDIA is called</strong></li>
               <li>Confusion intensity amplifies penalty</li>
             </ul>
             <div class="wf-code">reward ∈ [−1.0, +1.0]</div>
@@ -472,7 +472,7 @@
           <div class="wf-body">
             <div class="wf-meta">
               <div class="wf-num" style="background:#7c3aed">6</div>
-              <span class="wf-layer">Backend · Gemini</span>
+              <span class="wf-layer">Backend · NVIDIA</span>
             </div>
             <span class="wf-icon">✨</span>
             <div class="wf-title">Adapted Response</div>
@@ -481,7 +481,7 @@
               <li><strong>Different instructions from the turn before</strong></li>
               <li>Same model — different effective behavior</li>
             </ul>
-            <div class="wf-code">gemini-3.5-flash(new_prompt)</div>
+            <div class="wf-code">nemotron-lightning(new_prompt)</div>
           </div>
         </div>
 
@@ -492,81 +492,11 @@
 
   <div class="divider"></div>
 
-  <!-- ══ 2. THREE AGENTS ══ -->
-  <div class="section">
-    <div class="section-header">
-      <div class="section-num">2</div>
-      <div>
-        <div class="section-title">Three Agents, Three Timescales</div>
-        <div class="section-sub">Real-time · per-turn · per-session</div>
-      </div>
-    </div>
-
-    <div class="agents-grid">
-      <div class="agent-card" style="animation-delay:.05s">
-        <div class="agent-band" style="background:linear-gradient(90deg,#16a34a,#86efac)"></div>
-        <div class="agent-header">
-          <div class="agent-timing timing-green">⚡ Every turn · ~1ms</div>
-          <span class="agent-emoji">🛠️</span>
-          <div class="agent-name">Prompt Agent</div>
-          <div class="agent-file">services/prompt_builder.py</div>
-        </div>
-        <div class="agent-body">
-          <ul class="agent-ul gu">
-            <li>Reads updated MongoDB profile before every call</li>
-            <li><strong>Rebuilds system prompt from scratch</strong> each turn</li>
-            <li>complexity_score → vocabulary level</li>
-            <li>topics_to_simplify → analogy instructions</li>
-            <li>prospective_flags → proactive strategies</li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="agent-card" style="animation-delay:.10s">
-        <div class="agent-band" style="background:linear-gradient(90deg,#2563eb,#93c5fd)"></div>
-        <div class="agent-header">
-          <div class="agent-timing timing-blue">📡 Every turn · real-time</div>
-          <span class="agent-emoji">📊</span>
-          <div class="agent-name">Reward Agent</div>
-          <div class="agent-file">services/reward.py</div>
-        </div>
-        <div class="agent-body">
-          <ul class="agent-ul bu">
-            <li>Receives gaze events from <strong>previous response</strong></li>
-            <li>Scalar reward — gaze replaces a human rater</li>
-            <li>Writes: <strong>complexity, format, topics</strong></li>
-            <li>Loop closes in <strong>under one second</strong></li>
-          </ul>
-        </div>
-      </div>
-
-      <div class="agent-card" style="animation-delay:.15s">
-        <div class="agent-band" style="background:linear-gradient(90deg,#7c3aed,#c4b5fd)"></div>
-        <div class="agent-header">
-          <div class="agent-timing timing-purple">🔁 Session end · RSI</div>
-          <span class="agent-emoji">🧠</span>
-          <div class="agent-name">Meta-Agent</div>
-          <div class="agent-file">services/meta_agent.py</div>
-        </div>
-        <div class="agent-body">
-          <ul class="agent-ul pu">
-            <li>Triggered by <strong>POST /session/end</strong></li>
-            <li>Full session → <strong>Google Antigravity</strong></li>
-            <li>Deep pattern analysis across all turns</li>
-            <li>Writes <strong>prospective_flags</strong> for next session</li>
-            <li>Next session starts <strong>pre-adapted</strong></li>
-          </ul>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div class="divider"></div>
 
   <!-- ══ 3. MEMORY ══ -->
   <div class="section">
     <div class="section-header">
-      <div class="section-num">3</div>
+      <div class="section-num">2</div>
       <div>
         <div class="section-title">Six-Layer Cognitive Memory</div>
         <div class="section-sub">Milliseconds to permanent — modeled on human memory</div>
@@ -695,8 +625,8 @@
           <span style="color:var(--muted);font-size:12px;margin-left:auto;font-weight:400">localhost:8000</span>
         </div>
         <div class="stack-row"><span class="stack-key">Framework</span><span class="stack-val" style="color:var(--purple)">FastAPI + uvicorn</span></div>
-        <div class="stack-row"><span class="stack-key">Chat LLM</span><span class="stack-val" style="color:var(--purple)">Gemini 3.5 Flash</span></div>
-        <div class="stack-row"><span class="stack-key">RSI agent</span><span class="stack-val" style="color:var(--purple)">Google Antigravity</span></div>
+        <div class="stack-row"><span class="stack-key">Chat LLM</span><span class="stack-val" style="color:var(--purple)">NVIDIA Nemotron Lightning</span></div>
+        <div class="stack-row"><span class="stack-key">RSI agent</span><span class="stack-val" style="color:var(--purple)">NVIDIA Nemotron Lightning</span></div>
         <div class="stack-row"><span class="stack-key">Database</span><span class="stack-val" style="color:var(--purple)">MongoDB Atlas</span></div>
       </div>
     </div>
@@ -736,8 +666,8 @@
 
 <footer>
   <span>◎ <strong>FocalPoint</strong> · AIEWF 2026 Hackathon</span>
-  <span>Implicit RLHF · RSI via Antigravity · 6-Layer Cognitive Memory</span>
-  <span>Built with Google Gemini + Antigravity</span>
+  <span>Implicit RLHF · NVIDIA session analysis · 6-Layer Cognitive Memory</span>
+  <span>Built with NVIDIA AI</span>
 </footer>
 
 </body>

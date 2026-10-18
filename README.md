@@ -1,16 +1,17 @@
 # FocalPoint
 
-FocalPoint is a gaze-aware LLM chat interface. The frontend tracks which response zones a user reads, skips, or revisits, sends those gaze events to a FastAPI backend, and the backend updates the next Gemini system prompt from MongoDB-backed user/session memory.
+FocalPoint is a gaze-aware LLM chat interface. The frontend tracks which response zones a user reads, skips, or revisits, sends those gaze events to a FastAPI backend, and the backend updates the next NVIDIA model system prompt from MongoDB-backed user/session memory.
 
 ## Current Architecture
 
 - Frontend: React + Vite on `http://localhost:5173`
 - Backend: FastAPI on `http://127.0.0.1:8000`
-- LLM: Gemini through `google-generativeai`
-- Database: MongoDB Atlas via `pymongo`
+- Chat, follow-up questions, and session analysis: NVIDIA API Catalog chat completions
+- Semantic memory: NVIDIA API Catalog embeddings
+- Database: local MongoDB via Docker, or MongoDB Atlas, using `pymongo`
 - Eye tracking: MediaPipe FaceMesh/Iris in the browser
 
-The app intentionally has no mock or fallback response path. If Gemini, MongoDB, CORS, or the backend is broken, the UI shows the real backend error.
+The app intentionally has no mock or fallback response path. If NVIDIA generation, MongoDB, CORS, or the backend is broken, the UI shows the real backend error.
 
 ## What Changed
 
@@ -18,7 +19,7 @@ The app intentionally has no mock or fallback response path. If Gemini, MongoDB,
 - Eye tracking now uses local MediaPipe FaceMesh/Iris landmarks with calibrated screen-coordinate regression.
 - Vite uses strict port `5173`, matching the backend CORS configuration.
 - Frontend chat calls now require the FastAPI backend; local simulation was removed.
-- Backend chat now fails with a real `502` when Gemini generation fails.
+- Backend chat fails with a real `502` when NVIDIA generation fails.
 - DigitalOcean/OpenAI fallback code was removed.
 - `MONGODB_URI` is required; the backend no longer silently defaults to local MongoDB.
 - Sessions and profile state now persist through backend endpoints and MongoDB, not browser localStorage.
@@ -34,21 +35,35 @@ The app intentionally has no mock or fallback response path. If Gemini, MongoDB,
 
 - Node.js and npm
 - Python 3
-- MongoDB Atlas connection string
-- Gemini API key
+- Docker Desktop for local MongoDB (or a MongoDB Atlas connection string)
+- NVIDIA API key
 
 ## Environment
 
 Create `.env` in the repo root:
 
 ```bash
-GEMINI_API_KEY=your_gemini_key
-GEMINI_MODEL=gemini-2.0-flash
-MONGODB_URI=your_mongodb_atlas_uri
+NVIDIA_API_KEY=your_nvidia_api_key
+NVIDIA_CHAT_MODEL=nvidia/nemotron-3.5-lightning-30b-a3b
+MONGODB_URI=mongodb://127.0.0.1:27017
 MONGODB_DB_NAME=focalpoint
+MONGODB_VECTOR_SEARCH=local
 ```
 
-`GEMINI_MODEL` is optional in code, but setting it explicitly is clearer for demos.
+`NVIDIA_CHAT_MODEL` is optional; the shown NVIDIA model is the default. A key exported in the shell takes precedence over `.env`. The same key serves chat, follow-up questions, session analysis, and semantic embeddings. Semantic memory uses `nvidia/nemotron-3-embed-1b` with 2048 dimensions. Local mode ranks these vectors by cosine similarity in Python. Atlas mode uses a separate vector index. Existing Gemini vectors are not searched by the new model.
+
+For Atlas, set `MONGODB_URI` to your Atlas connection string and `MONGODB_VECTOR_SEARCH=atlas`. Local MongoDB stores data in the persistent Docker volume `focalpoint_mongodb_data` and listens only on this machine.
+
+If another app uses port 8000, set `BACKEND_PORT=8001` and `VITE_API_BASE_URL=http://localhost:8001` in the root `.env`. Restart `npm run dev` after changing these values. The backend URLs below assume the default port 8000; substitute your configured port when testing.
+
+To keep older semantic facts searchable, run this once after adding the NVIDIA key:
+
+```bash
+cd backend
+.venv/bin/python migrate_embeddings.py
+```
+
+The migration adds NVIDIA embeddings to existing facts and can be rerun safely.
 
 ## Install
 
@@ -69,7 +84,8 @@ cd ..
 Install backend dependencies:
 
 ```bash
-python3 -m pip install -r backend/requirements.txt
+python3 -m venv backend/.venv
+backend/.venv/bin/python -m pip install -r backend/requirements.txt
 ```
 
 ## Run
@@ -77,8 +93,11 @@ python3 -m pip install -r backend/requirements.txt
 From the repo root:
 
 ```bash
+npm run db:up
 npm run dev
 ```
+
+Keep Docker Desktop running when using local MongoDB. `npm run db:down` stops MongoDB while retaining its data. Atlas users can skip the `db:up` command.
 
 This starts both services:
 

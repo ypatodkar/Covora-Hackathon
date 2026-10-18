@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Camera, CameraOff, Play, RefreshCw, Sparkles } from 'lucide-react';
+import { Camera, CameraOff, Play, RefreshCw } from 'lucide-react';
 
 // Built dynamically from the chat area bounds at calibration start — see buildCalibrationPoints()
 const FALLBACK_CALIBRATION_POINTS = [
@@ -258,7 +258,7 @@ export default function IrisTrackerController({
   const featureHistory = useRef([]);
   const latestModel = useRef(null);
   const calibrationSamples = useRef([]);
-  const calVideoRef = useRef(null);
+  const clickCountsRef = useRef({});
   const pointFilter = useRef(makeOneEuroFilter());
   const running = useRef(false);
 
@@ -270,15 +270,15 @@ export default function IrisTrackerController({
   const [calibrationPoints, setCalibrationPoints] = useState(FALLBACK_CALIBRATION_POINTS);
 
   useEffect(() => {
-    const savedModel = localStorage.getItem(MODEL_KEY);
-    if (savedModel) {
-      try {
+    try {
+      const savedModel = localStorage.getItem(MODEL_KEY);
+      if (savedModel) {
         latestModel.current = parseSavedModel(savedModel);
         setCameraStopped(true);
-      } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        setPermissionError(message);
       }
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      setPermissionError(message);
     }
 
     return () => {
@@ -287,13 +287,6 @@ export default function IrisTrackerController({
     // stopCamera reads refs directly and is safe for unmount cleanup.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    if (calibrating && calVideoRef.current && streamRef.current) {
-      calVideoRef.current.srcObject = streamRef.current;
-      calVideoRef.current.play().catch(() => {});
-    }
-  }, [calibrating]);
 
   const ensureFaceMesh = async () => {
     if (!window.FaceMesh) {
@@ -392,26 +385,30 @@ export default function IrisTrackerController({
     try {
       await ensureFaceMesh();
       await ensureVideo();
-      running.current = true;
-      frameRef.current = requestAnimationFrame(runFrameLoop);
+      if (!running.current) {
+        running.current = true;
+        frameRef.current = requestAnimationFrame(runFrameLoop);
+      }
       setCameraStopped(false);
+      return true;
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
       setPermissionError(message);
       setTrackingActive(false);
+      return false;
     } finally {
       setLoading(false);
     }
   };
 
   const startCalibration = async () => {
-    await startCamera();
+    if (!await startCamera()) return;
     calibrationSamples.current = [];
     featureHistory.current = [];
     latestFeatures.current = null;
     latestModel.current = null;
     pointFilter.current = makeOneEuroFilter();
-    localStorage.removeItem(MODEL_KEY);
+    // Keep the previous saved model until a new calibration succeeds.
     setTrackingActive(false);
     const points = buildCalibrationPoints();
     setCalibrationPoints(points);
@@ -419,20 +416,22 @@ export default function IrisTrackerController({
     setCalibrationProgress(0);
     const counts = {};
     points.forEach(point => { counts[point.id] = 0; });
+    clickCountsRef.current = counts;
     setClickCounts(counts);
   };
 
   const resumeTracking = async () => {
-    const savedModel = localStorage.getItem(MODEL_KEY);
-    if (!savedModel) {
-      setPermissionError('No saved MediaPipe calibration model. Calibrate first.');
-      return;
+    try {
+      const savedModel = localStorage.getItem(MODEL_KEY);
+      if (!savedModel) throw new Error('No saved MediaPipe calibration model. Calibrate first.');
+      latestModel.current = parseSavedModel(savedModel);
+      pointFilter.current = makeOneEuroFilter();
+      if (!await startCamera()) return;
+      setTrackingActive(true);
+      setCalibrationProgress(null);
+    } catch (err) {
+      setPermissionError(err instanceof Error ? err.message : String(err));
     }
-    latestModel.current = parseSavedModel(savedModel);
-    pointFilter.current = makeOneEuroFilter();
-    await startCamera();
-    setTrackingActive(true);
-    setCalibrationProgress(null);
   };
 
   const stopCamera = () => {
@@ -465,7 +464,7 @@ export default function IrisTrackerController({
       return;
     }
 
-    const currentClicks = clickCounts[point.id] || 0;
+    const currentClicks = clickCountsRef.current[point.id] || 0;
     if (currentClicks >= CLICKS_PER_POINT) return;
 
     const x = Math.round((point.left / 100) * window.innerWidth);
@@ -480,7 +479,9 @@ export default function IrisTrackerController({
     }
     calibrationSamples.current.push({ features, x, y });
 
-    const updated = { ...clickCounts, [point.id]: currentClicks + 1 };
+    setPermissionError(null);
+    const updated = { ...clickCountsRef.current, [point.id]: currentClicks + 1 };
+    clickCountsRef.current = updated;
     setClickCounts(updated);
     const total = Object.values(updated).reduce((a, b) => a + b, 0);
     const required = calibrationPoints.length * CLICKS_PER_POINT;
@@ -491,11 +492,15 @@ export default function IrisTrackerController({
         const model = fitLinearModel(calibrationSamples.current);
         latestModel.current = model;
         pointFilter.current = makeOneEuroFilter();
-        localStorage.setItem(MODEL_KEY, JSON.stringify(model));
         setCalibrating(false);
         setTrackingActive(true);
         setCalibrationProgress(null);
         setPermissionError(null);
+        try {
+          localStorage.setItem(MODEL_KEY, JSON.stringify(model));
+        } catch {
+          setPermissionError('Calibration complete. Tracking is active, but this browser could not save it for next time.');
+        }
       } catch (err) {
         const message = err instanceof Error ? err.message : String(err);
         setPermissionError(message);
@@ -553,7 +558,7 @@ export default function IrisTrackerController({
         {renderButtons()}
       </div>
       {calibrating && (
-        <div style={{
+        <div role="dialog" aria-modal="true" aria-labelledby="iris-calibration-title" style={{
           position: 'fixed', top: 0, left: 0,
           width: '100vw', height: '100vh',
           backgroundColor: 'rgba(5, 5, 10, 0.95)',
@@ -562,51 +567,32 @@ export default function IrisTrackerController({
           alignItems: 'center', justifyContent: 'center',
           pointerEvents: 'auto',
         }}>
-          {/* Card only shown before first click */}
-          {Object.keys(clickCounts).length === 0 && (
-            <div style={{
-              textAlign: 'center', maxWidth: '420px',
-              background: 'var(--bg-app)',
-              border: '1px solid var(--border)',
-              padding: '1.5rem', borderRadius: 'var(--radius-lg)',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.5)',
-              marginBottom: '2rem', zIndex: 100000,
-            }}>
-              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
-                <Sparkles size={28} style={{ color: 'var(--accent-teal)' }} />
-              </div>
-              <h3 style={{ margin: '0 0 0.5rem 0', fontSize: '1.25rem', fontWeight: 700 }}>Calibrate Iris Tracking</h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: '1.5', marginBottom: '1rem' }}>
-                Sit arm's length from your camera. Look at each dot and click it {CLICKS_PER_POINT} times. Keep your head still — move only your eyes.
-              </p>
-              {/* Camera preview — only before calibration starts so it doesn't pull focus from the dots */}
-              <div style={{
-                position: 'relative', width: '100%', aspectRatio: '4/3',
-                borderRadius: '10px', overflow: 'hidden',
-                background: '#000', border: '1px solid var(--border)',
-              }}>
-                <video
-                  ref={calVideoRef}
-                  autoPlay muted playsInline
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', transform: 'scaleX(-1)' }}
-                />
-                <div style={{
-                  position: 'absolute', bottom: 6, left: 8,
-                  display: 'flex', alignItems: 'center', gap: 5,
-                  background: 'rgba(0,0,0,0.55)', padding: '2px 8px', borderRadius: 99,
-                }}>
-                  <div style={{ width: 6, height: 6, borderRadius: '50%', background: '#81c995', animation: 'pulse-green 2s infinite' }} />
-                  <span style={{ fontSize: '0.6rem', color: '#81c995', fontWeight: 700 }}>LIVE — click a dot to begin</span>
-                </div>
-              </div>
+          <div style={{
+            position: 'absolute', top: '10%', left: '50%', transform: 'translateX(-50%)',
+            textAlign: 'center', width: 'min(420px, 65vw)',
+            color: 'var(--text-primary)', fontSize: '0.8rem',
+          }}>
+            <h3 id="iris-calibration-title" style={{ margin: '0 0 4px' }}>Calibrate Iris Tracking</h3>
+            <p style={{ margin: '0 0 4px' }}>
+              Look at each dot and click it {CLICKS_PER_POINT} times. Keep your head still.
+              Tracking starts automatically when every dot is complete.
+            </p>
+            <div role="status">
+              {Object.values(clickCounts).reduce((sum, count) => sum + count, 0)} / {calibrationPoints.length * CLICKS_PER_POINT} clicks
             </div>
-          )}
+            {permissionError && <div role="alert" style={{ color: 'var(--danger)' }}>{permissionError}</div>}
+          </div>
+          <div style={{ position: 'absolute', bottom: '10%', display: 'flex', gap: '12px' }}>
+            <button className="sidebar-btn" onClick={startCalibration} disabled={loading}>Start over</button>
+            <button className="sidebar-btn" onClick={stopCamera}>Cancel calibration</button>
+          </div>
           {calibrationPoints.map(point => {
             const clicks = clickCounts[point.id] || 0;
             const done = clicks >= CLICKS_PER_POINT;
             return (
               <button
                 key={point.id}
+                aria-label={`Calibration point ${point.id}: ${clicks} of ${CLICKS_PER_POINT} clicks`}
                 onClick={() => handlePointClick(point)}
                 disabled={done}
                 style={{

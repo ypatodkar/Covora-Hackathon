@@ -95,7 +95,7 @@ async def reset_profile(user_id: str = Query(...)):
     return {"reset": True, "user_id": user_id, "complexity_score": DEFAULT_PROFILE["complexity_score"]}
 
 @router.post("/session/end")
-async def end_session(req: SessionEndRequest):
+def end_session(req: SessionEndRequest):
     user     = get_user(req.user_id)
     episodes = get_session_episodes(req.session_id)
 
@@ -105,7 +105,10 @@ async def end_session(req: SessionEndRequest):
         avg_reward = round(sum(rewards) / len(rewards), 2) if rewards else None
 
     # RSI: meta-agent analyzes session and upgrades user profile
-    insights = run_meta_agent(req.user_id, req.session_id, user)
+    try:
+        insights = run_meta_agent(req.user_id, req.session_id, user)
+    except Exception as e:
+        raise HTTPException(status_code=502, detail=f"NVIDIA session analysis failed: {e}") from e
     close_session(req.session_id, avg_reward, insights)
 
     return {

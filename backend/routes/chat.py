@@ -7,20 +7,19 @@ from db.episodes import write_episode, get_recent_episodes
 from db.sessions import increment_turn, start_session
 from services.reward import compute_reward, update_profile_from_reward
 from services.prompt_builder import build_system_prompt
-import services.gemini as gemini_svc
-from services.gemini import generate_follow_up_questions
+from services.nvidia import generate_response, generate_follow_up_questions
 
 def _generate(system_prompt: str, message: str, history: list[dict] = None, complexity: int = 5) -> str:
     try:
         max_tokens = 4096 if complexity >= 8 else 1024
-        return gemini_svc.generate_response(system_prompt, message, history, max_tokens=max_tokens)
+        return generate_response(system_prompt, message, history, max_tokens=max_tokens)
     except Exception as e:
-        raise HTTPException(status_code=502, detail=f"Gemini generation failed: {e}") from e
+        raise HTTPException(status_code=502, detail=f"NVIDIA generation failed: {e}") from e
 
 router = APIRouter()
 
 @router.post("/chat", response_model=ChatResponse)
-async def chat(req: ChatRequest):
+def chat(req: ChatRequest):
     user    = get_user(req.user_id)
     reward  = None
     if req.session_id:

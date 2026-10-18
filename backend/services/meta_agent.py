@@ -1,13 +1,8 @@
-import os
 import json
-import google.generativeai as genai
 from db.users import update_user, add_prospective_flag
 from db.episodes import get_session_episodes
 from db.facts import write_fact
-
-# Antigravity = Google's hosted autonomous reasoning agent (Interactions API)
-ANTIGRAVITY_MODEL = os.getenv("ANTIGRAVITY_MODEL", "antigravity-preview-05-2026")
-FALLBACK_MODEL    = os.getenv("RSI_FALLBACK_MODEL", "gemini-3.5-flash")
+from services.nvidia import complete
 
 META_PROMPT = """
 You are an adaptive learning analyst embedded in FocalPoint, an AI that learns
@@ -58,27 +53,6 @@ Return a raw JSON object (no markdown fences):
 }}
 """
 
-def _call_antigravity(prompt: str) -> str:
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model    = genai.GenerativeModel(model_name=ANTIGRAVITY_MODEL)
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.GenerationConfig(
-            temperature=0.2,       # low temp — we want consistent JSON
-            max_output_tokens=800,
-        )
-    )
-    return response.text.strip()
-
-def _call_fallback(prompt: str) -> str:
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-    model    = genai.GenerativeModel(model_name=FALLBACK_MODEL)
-    response = model.generate_content(
-        prompt,
-        generation_config=genai.GenerationConfig(temperature=0.2, max_output_tokens=800)
-    )
-    return response.text.strip()
-
 def _parse_json(raw: str) -> dict:
     # Strip markdown fences if the model adds them
     if "```" in raw:
@@ -97,18 +71,11 @@ def run_meta_agent(user_id: str, session_id: str, current_profile: dict) -> list
         profile=json.dumps(current_profile, indent=2, default=str),
     )
 
-    raw = None
-    try:
-        raw = _call_antigravity(prompt)
-        print(f"[meta_agent] Antigravity responded ({len(raw)} chars)")
-    except Exception as e:
-        print(f"[meta_agent] Antigravity unavailable ({e}), falling back to {FALLBACK_MODEL}")
-        try:
-            raw = _call_fallback(prompt)
-            print(f"[meta_agent] Fallback responded ({len(raw)} chars)")
-        except Exception as e2:
-            print(f"[meta_agent] Fallback also failed: {e2}")
-            return []
+    raw = complete([
+        {"role": "system", "content": "Return only the requested JSON object."},
+        {"role": "user", "content": prompt},
+    ], max_tokens=1200, temperature=0.2)
+    print(f"[meta_agent] NVIDIA responded ({len(raw)} chars)")
 
     try:
         result = _parse_json(raw)

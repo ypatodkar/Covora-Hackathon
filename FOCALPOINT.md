@@ -2,6 +2,8 @@
 > AIEWF 2026 Hackathon · Shack15, SF · June 27–28
 > Submission deadline: June 28, 12:00PM
 
+> Historical hackathon plan. The current implementation uses NVIDIA for chat, session analysis, and embeddings; see README.md for setup.
+
 ---
 
 ## The Idea in One Sentence
