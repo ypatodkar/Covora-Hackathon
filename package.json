@@ -1,0 +1,17 @@
+{
+  "name": "focalpoint",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "db:up": "docker compose up -d --wait mongodb",
+    "db:down": "docker compose down",
+    "dev": "concurrently -k -n backend,frontend -c blue,green \"npm run backend:dev\" \"npm run frontend:dev\"",
+    "backend:dev": "cd backend && .venv/bin/python dev.py",
+    "frontend:dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "preview": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.3"
+  }
+}
