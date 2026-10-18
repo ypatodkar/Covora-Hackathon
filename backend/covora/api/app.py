@@ -9,6 +9,7 @@ from covora.api.routes import (
     exports,
     health,
     icp,
+    inbox,
     prospects,
     reps,
     review,
@@ -44,7 +45,20 @@ def create_app(app_settings: Settings | None = None, *, backend: ChatBackend | N
         CORSMiddleware, allow_origins=[app_settings.cors_origin], allow_methods=["*"], allow_headers=["*"]
     )
     install_error_handlers(app, app_settings)
-    for module in (health, workspace, settings, icp, runs, campaigns, prospects, exports, templates, reps, review):
+    for module in (
+        health,
+        workspace,
+        settings,
+        icp,
+        runs,
+        campaigns,
+        prospects,
+        exports,
+        templates,
+        reps,
+        review,
+        inbox,
+    ):
         app.include_router(module.router, prefix="/api")
     return app
 
