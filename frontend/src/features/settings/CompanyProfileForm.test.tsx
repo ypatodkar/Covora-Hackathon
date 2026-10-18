@@ -15,15 +15,26 @@ const WS = {
 it("shows empty profile form", async () => {
   mockFetch({ "GET /api/workspace": WS });
   renderWithQuery(<CompanyProfileForm />);
-  expect(await screen.findByLabelText("Company name")).toHaveValue("My company");
+  expect(await screen.findByLabelText("Company name")).toHaveValue(
+    "My company",
+  );
   expect(screen.getByLabelText("What you sell")).toHaveValue("");
 });
 
 it("saves proof points one per line", async () => {
-  const calls = mockFetch({ "GET /api/workspace": WS, "PUT /api/workspace": WS });
+  const calls = mockFetch({
+    "GET /api/workspace": WS,
+    "PUT /api/workspace": WS,
+  });
   renderWithQuery(<CompanyProfileForm />);
-  await userEvent.type(await screen.findByLabelText("Proof points"), "Fast payback{enter}Made in USA");
+  await userEvent.type(
+    await screen.findByLabelText("Proof points"),
+    "Fast payback{enter}Made in USA",
+  );
   await userEvent.click(screen.getByRole("button", { name: "Save" }));
   expect(await screen.findByText("Saved")).toBeInTheDocument();
-  expect(calls.body("PUT /api/workspace").value_props).toEqual(["Fast payback", "Made in USA"]);
+  expect(calls.body("PUT /api/workspace").value_props).toEqual([
+    "Fast payback",
+    "Made in USA",
+  ]);
 });

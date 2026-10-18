@@ -1,7 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState, type FormEvent } from "react";
 import { apiFetch, putJson } from "../../api/client";
-import type { OfferingType, WorkspaceOut, WorkspaceProfile } from "../../api/types";
+import type {
+  OfferingType,
+  WorkspaceOut,
+  WorkspaceProfile,
+} from "../../api/types";
 import { inputClass, labelClass, primaryButton } from "../../components/ui";
 
 interface FormState {
@@ -42,10 +46,14 @@ const OFFERINGS: { value: OfferingType; label: string }[] = [
 
 export function CompanyProfileForm() {
   const queryClient = useQueryClient();
-  const workspace = useQuery({ queryKey: ["workspace"], queryFn: () => apiFetch<WorkspaceOut>("/workspace") });
+  const workspace = useQuery({
+    queryKey: ["workspace"],
+    queryFn: () => apiFetch<WorkspaceOut>("/workspace"),
+  });
   const [form, setForm] = useState<FormState | null>(null);
   const save = useMutation({
-    mutationFn: (profile: WorkspaceProfile) => putJson<WorkspaceOut>("/workspace", profile),
+    mutationFn: (profile: WorkspaceProfile) =>
+      putJson<WorkspaceOut>("/workspace", profile),
     onSuccess: (ws) => queryClient.setQueryData(["workspace"], ws),
   });
 
@@ -53,7 +61,12 @@ export function CompanyProfileForm() {
     if (workspace.data && form === null) setForm(toForm(workspace.data));
   }, [workspace.data, form]);
 
-  if (workspace.isError) return <p role="alert" className="text-sm text-red-600">{workspace.error.message}</p>;
+  if (workspace.isError)
+    return (
+      <p role="alert" className="text-sm text-red-600">
+        {workspace.error.message}
+      </p>
+    );
   if (form === null) return <p className="text-sm text-slate-500">Loading…</p>;
 
   const update = (patch: Partial<FormState>) => {
@@ -123,7 +136,10 @@ export function CompanyProfileForm() {
         <legend className={labelClass}>Offering type</legend>
         <div className="mt-2 flex gap-6">
           {OFFERINGS.map((o) => (
-            <label key={o.value} className="flex items-center gap-2 text-sm text-slate-700">
+            <label
+              key={o.value}
+              className="flex items-center gap-2 text-sm text-slate-700"
+            >
               <input
                 type="radio"
                 name="offering-type"
@@ -137,10 +153,16 @@ export function CompanyProfileForm() {
         </div>
       </fieldset>
       <div className="flex items-center gap-3">
-        <button type="submit" className={primaryButton} disabled={save.isPending}>
+        <button
+          type="submit"
+          className={primaryButton}
+          disabled={save.isPending}
+        >
           Save
         </button>
-        {save.isSuccess && <span className="text-sm text-emerald-700">Saved</span>}
+        {save.isSuccess && (
+          <span className="text-sm text-emerald-700">Saved</span>
+        )}
         {save.isError && (
           <span role="alert" className="text-sm text-red-600">
             {save.error.message}

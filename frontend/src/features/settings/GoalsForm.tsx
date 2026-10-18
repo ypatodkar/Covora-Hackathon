@@ -5,8 +5,10 @@ import type { GoalType, WorkspaceSettings } from "../../api/types";
 import { inputClass, labelClass, primaryButton } from "../../components/ui";
 
 // Rates are fractions in the API and percentages on screen.
-export const toPercent = (fraction: number) => Number((fraction * 100).toFixed(4));
-export const toFraction = (percent: number) => Number((percent / 100).toFixed(6));
+export const toPercent = (fraction: number) =>
+  Number((fraction * 100).toFixed(4));
+export const toFraction = (percent: number) =>
+  Number((percent / 100).toFixed(6));
 
 interface FormState {
   goalType: GoalType;
@@ -67,16 +69,24 @@ export function GoalsForm() {
   });
   const [form, setForm] = useState<FormState | null>(null);
   const save = useMutation({
-    mutationFn: (value: WorkspaceSettings) => putJson<WorkspaceSettings>("/workspace/settings", value),
-    onSuccess: (value) => queryClient.setQueryData(["workspace-settings"], value),
+    mutationFn: (value: WorkspaceSettings) =>
+      putJson<WorkspaceSettings>("/workspace/settings", value),
+    onSuccess: (value) =>
+      queryClient.setQueryData(["workspace-settings"], value),
   });
 
   useEffect(() => {
     if (settings.data && form === null) setForm(toForm(settings.data));
   }, [settings.data, form]);
 
-  if (settings.isError) return <p role="alert" className="text-sm text-red-600">{settings.error.message}</p>;
-  if (form === null || !settings.data) return <p className="text-sm text-slate-500">Loading…</p>;
+  if (settings.isError)
+    return (
+      <p role="alert" className="text-sm text-red-600">
+        {settings.error.message}
+      </p>
+    );
+  if (form === null || !settings.data)
+    return <p className="text-sm text-slate-500">Loading…</p>;
 
   const update = (patch: Partial<FormState>) => {
     save.reset();
@@ -85,6 +95,7 @@ export function GoalsForm() {
   const onSubmit = (e: FormEvent) => {
     e.preventDefault();
     save.mutate({
+      ...settings.data,
       goals: {
         goal_type: form.goalType,
         target: Number(form.target),
@@ -110,7 +121,10 @@ export function GoalsForm() {
               ["meetings", "Meetings"],
             ] as const
           ).map(([value, label]) => (
-            <label key={value} className="flex items-center gap-2 text-sm text-slate-700">
+            <label
+              key={value}
+              className="flex items-center gap-2 text-sm text-slate-700"
+            >
               <input
                 type="radio"
                 name="goal-type"
@@ -124,7 +138,12 @@ export function GoalsForm() {
         </div>
       </fieldset>
       <div className="grid gap-5 sm:grid-cols-3">
-        <NumberField id="goal-target" label="Target" value={form.target} onChange={(target) => update({ target })} />
+        <NumberField
+          id="goal-target"
+          label="Target"
+          value={form.target}
+          onChange={(target) => update({ target })}
+        />
         <NumberField
           id="goal-rate"
           label="Expected positive reply rate (%)"
@@ -157,10 +176,16 @@ export function GoalsForm() {
         />
       </div>
       <div className="flex items-center gap-3">
-        <button type="submit" className={primaryButton} disabled={save.isPending}>
+        <button
+          type="submit"
+          className={primaryButton}
+          disabled={save.isPending}
+        >
           Save
         </button>
-        {save.isSuccess && <span className="text-sm text-emerald-700">Saved</span>}
+        {save.isSuccess && (
+          <span className="text-sm text-emerald-700">Saved</span>
+        )}
         {save.isError && (
           <span role="alert" className="text-sm text-red-600">
             {save.error.message}

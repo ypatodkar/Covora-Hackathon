@@ -17,7 +17,10 @@ interface ErrorBody {
 }
 
 /** Call the Covora API. Throws ApiError with the server's error shape on any non-2xx response. */
-export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise<T> {
+export async function apiFetch<T>(
+  path: string,
+  init: RequestInit = {},
+): Promise<T> {
   const headers = new Headers(init.headers);
   headers.set("Accept", "application/json");
   if (init.body !== undefined && !headers.has("Content-Type")) {
@@ -28,7 +31,12 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
   try {
     response = await fetch(`/api${path}`, { ...init, headers });
   } catch {
-    throw new ApiError("network_error", "Could not reach the Covora server.", 0, {});
+    throw new ApiError(
+      "network_error",
+      "Could not reach the Covora server.",
+      0,
+      {},
+    );
   }
 
   if (!response.ok) {
@@ -36,7 +44,12 @@ export async function apiFetch<T>(path: string, init: RequestInit = {}): Promise
     try {
       body = (await response.json()) as ErrorBody;
     } catch {
-      throw new ApiError("network_error", `Request failed (${response.status}).`, response.status, {});
+      throw new ApiError(
+        "network_error",
+        `Request failed (${response.status}).`,
+        response.status,
+        {},
+      );
     }
     const err = body.error ?? {};
     throw new ApiError(
@@ -57,4 +70,8 @@ export function postJson<T>(path: string, body: unknown): Promise<T> {
 
 export function putJson<T>(path: string, body: unknown): Promise<T> {
   return apiFetch<T>(path, { method: "PUT", body: JSON.stringify(body) });
+}
+
+export function patchJson<T>(path: string, body: unknown): Promise<T> {
+  return apiFetch<T>(path, { method: "PATCH", body: JSON.stringify(body) });
 }

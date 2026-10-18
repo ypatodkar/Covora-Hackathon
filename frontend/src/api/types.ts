@@ -162,9 +162,16 @@ export interface SendingSettings {
   no_reply_window_minutes: number;
 }
 
+export interface SimulationSettings {
+  profile: "realistic" | "accelerated";
+  reply_delay_seconds: [number, number];
+  seed: number;
+}
+
 export interface WorkspaceSettings {
   goals: Goals;
   sending: SendingSettings;
+  simulation?: SimulationSettings;
 }
 
 export interface SizingEstimate {
@@ -184,7 +191,14 @@ export interface SizingEstimate {
   cost_model_source: "default" | "measured";
 }
 
-export type CampaignStatus = "draft" | "queued" | "running" | "complete" | "failed";
+export type CampaignStatus =
+  | "draft"
+  | "queued"
+  | "running"
+  | "awaiting_approval"
+  | "sending"
+  | "complete"
+  | "failed";
 
 export interface Funnel {
   candidates: number;
@@ -203,11 +217,22 @@ export interface CampaignOut {
   icp_version_id: string;
   goal: Goals;
   target_prospects: number;
-  progress: { used_queries: string[]; waves: number; stop_reason: string | null };
+  progress: {
+    used_queries: string[];
+    waves: number;
+    stop_reason: string | null;
+  };
   last_error: string | null;
   created_at: string;
   funnel: Funnel;
   latest_run_id: string | null;
+  arms?: {
+    key: string;
+    template_id: string;
+    template_name: string;
+    length: string;
+    cta: string;
+  }[];
 }
 
 export type EvidenceLabel = "verified" | "unverified" | "unknown";
@@ -265,5 +290,98 @@ export interface CompanyDetail {
   company: { id: string; name: string; domain: string; synthetic: boolean };
   facts: FactOut[];
   contacts: ContactOut[];
-  campaigns: { campaign_id: string; status: string; fit_score: number | null; reason: string | null }[];
+  campaigns: {
+    campaign_id: string;
+    status: string;
+    fit_score: number | null;
+    reason: string | null;
+  }[];
+}
+
+export interface ReviewDraft {
+  id: string;
+  prospect_id: string;
+  arm_key: string | null;
+  kind: string;
+  status: string;
+  subject: string;
+  body: string;
+  problems: string[];
+  intended_to: string | null;
+  contact: { full_name: string; title: string } | null;
+  company: { name: string; domain: string } | null;
+}
+
+export interface SalesRep {
+  id: string;
+  name: string;
+  email: string;
+  booking_url: string | null;
+  active: boolean;
+}
+
+export interface InboxContact {
+  id: string;
+  full_name: string;
+  title: string;
+  email: string | null;
+  synthetic: boolean;
+}
+
+export interface InboxCompany {
+  id: string;
+  name: string;
+  domain: string;
+  synthetic: boolean;
+}
+
+export interface ThreadRow {
+  prospect_id: string;
+  campaign_id: string;
+  contact: InboxContact;
+  company: InboxCompany;
+  status: string;
+  meeting_booked: boolean;
+  simulated: boolean;
+  message_count: number;
+  last_message_at: string;
+  last_label: string | null;
+}
+
+export interface ThreadMessage {
+  id: string;
+  direction: "in" | "out";
+  kind: string;
+  subject: string;
+  body: string;
+  status: string;
+  delivery: string | null;
+  source: string | null;
+  intended_to: string | null;
+  actual_to: string | null;
+  cc: string[];
+  sent_at: string | null;
+  received_at: string | null;
+  created_at: string;
+  error: string | null;
+  label: string | null;
+  confidence: number | null;
+  summary: string | null;
+}
+
+export interface ThreadDetail {
+  prospect: {
+    id: string;
+    campaign_id: string;
+    role: string;
+    status: string;
+    arm_key: string | null;
+    pick_reason: string;
+    meeting_booked_at: string | null;
+    meeting_synthetic: boolean;
+  };
+  contact: InboxContact;
+  company: InboxCompany;
+  rep: { name: string; email: string; booking_url: string | null } | null;
+  messages: ThreadMessage[];
 }
