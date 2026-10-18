@@ -163,7 +163,7 @@ export interface SendingSettings {
 }
 
 export interface SimulationSettings {
-  profile: "realistic" | "accelerated";
+  profile: "realistic" | "accelerated" | "demo";
   reply_delay_seconds: [number, number];
   seed: number;
 }

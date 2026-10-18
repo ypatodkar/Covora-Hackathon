@@ -1,0 +1,10 @@
+# Demo profile: far more replies than real cold email, so a run on the 6-company fixture web shows every path.
+name: demo
+base_positive_rate: 0.35
+multipliers:
+  function: {operations: 1.5, partnerships: 1.3, finance: 0.6}
+  length: {short: 1.4, medium: 1.0}
+  cta: {question: 1.2, booking-link: 0.9}
+  seniority_by_size: {c_level_at_51_plus: 0.6}
+outcome_mix_when_not_positive: {none: 0.25, not_now: 0.2, not_interested: 0.2, wrong_person: 0.25, unsubscribe: 0.1}
+p_book: 0.6

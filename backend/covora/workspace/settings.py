@@ -24,7 +24,7 @@ class SendingSettings(BaseModel):
 
 
 class SimulationSettings(BaseModel):
-    profile: Literal["realistic", "accelerated"] = "realistic"
+    profile: Literal["realistic", "accelerated", "demo"] = "realistic"
     reply_delay_seconds: list[int] = [5, 30]
     seed: int = 7
 
