@@ -13,7 +13,9 @@ const SECTIONS = [
 export function Sidebar() {
   return (
     <nav className="flex w-60 shrink-0 flex-col border-r border-slate-200 bg-white px-3 py-6">
-      <div className="mb-8 px-3 text-lg font-semibold tracking-tight">Covora</div>
+      <div className="mb-8 px-3 text-lg font-semibold tracking-tight">
+        Covora
+      </div>
       <ul className="space-y-1">
         {SECTIONS.map((s) => (
           <li key={s.to}>
@@ -22,7 +24,9 @@ export function Sidebar() {
               end={s.to === "/"}
               className={({ isActive }) =>
                 `block rounded-md px-3 py-2 text-sm ${
-                  isActive ? "bg-indigo-50 font-medium text-indigo-700" : "text-slate-600 hover:bg-slate-50"
+                  isActive
+                    ? "bg-indigo-50 font-medium text-indigo-700"
+                    : "text-slate-600 hover:bg-slate-50"
                 }`
               }
             >

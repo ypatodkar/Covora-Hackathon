@@ -1,9 +1,21 @@
 import type { Funnel as FunnelData } from "../../api/types";
 
-const STEPS: { key: keyof FunnelData; label: string; aside?: { key: keyof FunnelData; label: string } }[] = [
+const STEPS: {
+  key: keyof FunnelData;
+  label: string;
+  aside?: { key: keyof FunnelData; label: string };
+}[] = [
   { key: "candidates", label: "Companies found" },
-  { key: "qualified", label: "Qualified", aside: { key: "rejected", label: "rejected" } },
-  { key: "with_contacts", label: "With contacts", aside: { key: "no_contact", label: "no contact" } },
+  {
+    key: "qualified",
+    label: "Qualified",
+    aside: { key: "rejected", label: "rejected" },
+  },
+  {
+    key: "with_contacts",
+    label: "With contacts",
+    aside: { key: "no_contact", label: "no contact" },
+  },
   { key: "prospects", label: "Prospects picked" },
 ];
 
@@ -27,13 +39,17 @@ export function Funnel({ funnel }: { funnel: FunnelData }) {
           <div className="h-2 rounded-full bg-slate-100">
             <div
               className="h-2 rounded-full bg-indigo-500"
-              style={{ width: `${Math.round((100 * funnel[step.key]) / top)}%` }}
+              style={{
+                width: `${Math.round((100 * funnel[step.key]) / top)}%`,
+              }}
             />
           </div>
         </li>
       ))}
       {funnel.needs_review > 0 && (
-        <li className="text-xs text-amber-700">{funnel.needs_review} need review</li>
+        <li className="text-xs text-amber-700">
+          {funnel.needs_review} need review
+        </li>
       )}
     </ol>
   );

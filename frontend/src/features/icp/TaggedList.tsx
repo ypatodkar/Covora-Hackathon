@@ -12,10 +12,22 @@ interface Props<T> {
 }
 
 /** An editable list of tagged values. Anything the user edits or adds becomes "stated". */
-export function TaggedList<T>({ label, items, onChange, format, parse, empty }: Props<T>) {
+export function TaggedList<T>({
+  label,
+  items,
+  onChange,
+  format,
+  parse,
+  empty,
+}: Props<T>) {
   const setItem = (index: number, text: string) =>
-    onChange(items.map((item, i) => (i === index ? { value: parse(text), origin: "stated" } : item)));
-  const remove = (index: number) => onChange(items.filter((_, i) => i !== index));
+    onChange(
+      items.map((item, i) =>
+        i === index ? { value: parse(text), origin: "stated" } : item,
+      ),
+    );
+  const remove = (index: number) =>
+    onChange(items.filter((_, i) => i !== index));
   const add = () => onChange([...items, { value: empty, origin: "stated" }]);
 
   return (
@@ -31,7 +43,10 @@ export function TaggedList<T>({ label, items, onChange, format, parse, empty }: 
       ) : (
         <ul className="space-y-2">
           {items.map((item, i) => (
-            <li key={i} className={`flex items-center gap-2 ${originRowClass(item.origin)}`}>
+            <li
+              key={i}
+              className={`flex items-center gap-2 ${originRowClass(item.origin)}`}
+            >
               <input
                 aria-label={`${label} ${i + 1}`}
                 className={inputClass}

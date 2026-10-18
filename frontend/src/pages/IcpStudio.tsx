@@ -3,7 +3,13 @@ import { useState } from "react";
 import { apiFetch, postJson } from "../api/client";
 import type { IcpVersionOut, ParseResponse, StructuredICP } from "../api/types";
 import { PageHeader } from "../components/PageHeader";
-import { cardClass, inputClass, labelClass, primaryButton, secondaryButton } from "../components/ui";
+import {
+  cardClass,
+  inputClass,
+  labelClass,
+  primaryButton,
+  secondaryButton,
+} from "../components/ui";
 import { LaunchCampaignDialog } from "../features/campaigns/LaunchCampaignDialog";
 import { IcpEditor } from "../features/icp/IcpEditor";
 import { VersionHistory } from "../features/icp/VersionHistory";
@@ -15,13 +21,19 @@ export function IcpStudio() {
   const [edited, setEdited] = useState<StructuredICP | null>(null);
   const [parentId, setParentId] = useState<string | null>(null);
   const [savedVersion, setSavedVersion] = useState<number | null>(null);
-  const [activeVersion, setActiveVersion] = useState<IcpVersionOut | null>(null);
+  const [activeVersion, setActiveVersion] = useState<IcpVersionOut | null>(
+    null,
+  );
   const [launching, setLaunching] = useState(false);
 
-  const versions = useQuery({ queryKey: ["icps"], queryFn: () => apiFetch<IcpVersionOut[]>("/icps") });
+  const versions = useQuery({
+    queryKey: ["icps"],
+    queryFn: () => apiFetch<IcpVersionOut[]>("/icps"),
+  });
 
   const parse = useMutation({
-    mutationFn: (text: string) => postJson<ParseResponse>("/icp/parse", { prompt_text: text }),
+    mutationFn: (text: string) =>
+      postJson<ParseResponse>("/icp/parse", { prompt_text: text }),
     onSuccess: (result) => {
       setDraft(result.draft);
       setEdited(result.draft);
@@ -31,7 +43,12 @@ export function IcpStudio() {
 
   const save = useMutation({
     mutationFn: () =>
-      postJson<IcpVersionOut>("/icps", { prompt_text: promptText, structured: edited, draft, parent_id: parentId }),
+      postJson<IcpVersionOut>("/icps", {
+        prompt_text: promptText,
+        structured: edited,
+        draft,
+        parent_id: parentId,
+      }),
     onSuccess: (version) => {
       setSavedVersion(version.version);
       setActiveVersion(version);
@@ -83,9 +100,18 @@ export function IcpStudio() {
               </button>
             </div>
             {parse.isError && (
-              <div role="alert" className="mt-4 flex items-center justify-between rounded-md bg-red-50 px-4 py-3">
-                <span className="text-sm text-red-700">{parse.error.message}</span>
-                <button type="button" className={secondaryButton} onClick={() => parse.mutate(promptText)}>
+              <div
+                role="alert"
+                className="mt-4 flex items-center justify-between rounded-md bg-red-50 px-4 py-3"
+              >
+                <span className="text-sm text-red-700">
+                  {parse.error.message}
+                </span>
+                <button
+                  type="button"
+                  className={secondaryButton}
+                  onClick={() => parse.mutate(promptText)}
+                >
                   Try again
                 </button>
               </div>
@@ -96,7 +122,11 @@ export function IcpStudio() {
             <section className={cardClass}>
               <IcpEditor value={edited} onChange={setEdited} />
               <div className="mt-8 flex items-center justify-end gap-3 border-t border-slate-100 pt-6">
-                {savedVersion !== null && <span className="text-sm text-emerald-700">Saved as v{savedVersion}</span>}
+                {savedVersion !== null && (
+                  <span className="text-sm text-emerald-700">
+                    Saved as v{savedVersion}
+                  </span>
+                )}
                 {save.isError && (
                   <span role="alert" className="text-sm text-red-600">
                     {save.error.message}
@@ -124,11 +154,18 @@ export function IcpStudio() {
           )}
         </div>
         <aside>
-          <VersionHistory versions={versions.data ?? []} activeId={parentId} onSelect={loadVersion} />
+          <VersionHistory
+            versions={versions.data ?? []}
+            activeId={parentId}
+            onSelect={loadVersion}
+          />
         </aside>
       </div>
       {launching && activeVersion && (
-        <LaunchCampaignDialog icpVersion={activeVersion} onClose={() => setLaunching(false)} />
+        <LaunchCampaignDialog
+          icpVersion={activeVersion}
+          onClose={() => setLaunching(false)}
+        />
       )}
     </>
   );

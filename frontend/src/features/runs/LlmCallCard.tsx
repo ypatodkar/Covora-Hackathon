@@ -35,9 +35,14 @@ export function LlmCallCard({ call }: { call: LlmCallOut }) {
           </>
         )}
         <Row label="Routing reason">{call.routing_reason}</Row>
-        <Row label="Fallback">{call.fallback_used ? `Yes — ${call.fallback_reason ?? "unknown reason"}` : "No"}</Row>
+        <Row label="Fallback">
+          {call.fallback_used
+            ? `Yes — ${call.fallback_reason ?? "unknown reason"}`
+            : "No"}
+        </Row>
         <Row label="Tokens in / out">
-          {formatTokens(call.prompt_tokens)} / {formatTokens(call.completion_tokens)}
+          {formatTokens(call.prompt_tokens)} /{" "}
+          {formatTokens(call.completion_tokens)}
         </Row>
         <Row label="Latency">{formatDuration(call.latency_ms)}</Row>
         <Row label="Est. cost">{formatCost(call.est_cost_usd)}</Row>

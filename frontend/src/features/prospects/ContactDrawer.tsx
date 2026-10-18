@@ -2,7 +2,13 @@ import type { ProspectRow } from "../../api/types";
 import { Drawer } from "./Drawer";
 import { EmailBadge } from "./EvidenceBadge";
 
-export function ContactDrawer({ row, onClose }: { row: ProspectRow; onClose: () => void }) {
+export function ContactDrawer({
+  row,
+  onClose,
+}: {
+  row: ProspectRow;
+  onClose: () => void;
+}) {
   const c = row.contact;
   return (
     <Drawer title={c.full_name} onClose={onClose}>
@@ -11,7 +17,9 @@ export function ContactDrawer({ row, onClose }: { row: ProspectRow; onClose: () 
       </p>
       <dl className="space-y-2 text-sm">
         <div>
-          <dt className="text-slate-500">Why picked ({row.role}, {row.confidence} confidence)</dt>
+          <dt className="text-slate-500">
+            Why picked ({row.role}, {row.confidence} confidence)
+          </dt>
           <dd>{row.pick_reason}</dd>
         </div>
         <div>
@@ -25,7 +33,12 @@ export function ContactDrawer({ row, onClose }: { row: ProspectRow; onClose: () 
       <ul className="space-y-1">
         {c.source_urls.map((url) => (
           <li key={url}>
-            <a href={url} target="_blank" rel="noreferrer" className="break-all text-xs text-indigo-700 hover:underline">
+            <a
+              href={url}
+              target="_blank"
+              rel="noreferrer"
+              className="break-all text-xs text-indigo-700 hover:underline"
+            >
               {url}
             </a>
           </li>

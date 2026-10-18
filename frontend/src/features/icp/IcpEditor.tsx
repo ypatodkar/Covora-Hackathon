@@ -1,11 +1,18 @@
 import type { ReactNode } from "react";
-import type { Location, Range, SizeBand, StructuredICP, Tagged } from "../../api/types";
+import type {
+  Location,
+  Range,
+  SizeBand,
+  StructuredICP,
+  Tagged,
+} from "../../api/types";
 import { inputClass, secondaryButton } from "../../components/ui";
 import { OriginBadge, originRowClass } from "./OriginBadge";
 import { TaggedList, asText } from "./TaggedList";
 
 const asLocation = {
-  format: (v: Location) => (v.regions.length ? `${v.country}: ${v.regions.join(", ")}` : v.country),
+  format: (v: Location) =>
+    v.regions.length ? `${v.country}: ${v.regions.join(", ")}` : v.country,
   parse: (text: string): Location => {
     const [country, regions = ""] = text.split(":");
     return {
@@ -19,7 +26,8 @@ const asLocation = {
   empty: { country: "", regions: [] } as Location,
 };
 
-const toNumber = (text: string): number | null => (text.trim() === "" ? null : Number(text));
+const toNumber = (text: string): number | null =>
+  text.trim() === "" ? null : Number(text);
 const splitTitles = (text: string) =>
   text
     .split(",")
@@ -54,14 +62,17 @@ function RangeField({
         <button
           type="button"
           className={secondaryButton}
-          onClick={() => onChange({ value: { min: null, max: null }, origin: "stated" })}
+          onClick={() =>
+            onChange({ value: { min: null, max: null }, origin: "stated" })
+          }
         >
           Add
         </button>
       </div>
     );
   }
-  const set = (patch: Partial<Range>) => onChange({ value: { ...value.value, ...patch }, origin: "stated" });
+  const set = (patch: Partial<Range>) =>
+    onChange({ value: { ...value.value, ...patch }, origin: "stated" });
   return (
     <div className={originRowClass(value.origin)}>
       <div className="mb-2 flex items-center gap-2">
@@ -86,7 +97,11 @@ function RangeField({
           placeholder="Any"
           onChange={(e) => set({ max: toNumber(e.target.value) })}
         />
-        <button type="button" className="text-xs text-slate-400 hover:text-red-600" onClick={() => onChange(null)}>
+        <button
+          type="button"
+          className="text-xs text-slate-400 hover:text-red-600"
+          onClick={() => onChange(null)}
+        >
           Clear
         </button>
       </div>
@@ -94,15 +109,35 @@ function RangeField({
   );
 }
 
-function SizeBands({ bands, onChange }: { bands: SizeBand[]; onChange: (bands: SizeBand[]) => void }) {
+function SizeBands({
+  bands,
+  onChange,
+}: {
+  bands: SizeBand[];
+  onChange: (bands: SizeBand[]) => void;
+}) {
   const set = (index: number, patch: Partial<SizeBand>) =>
-    onChange(bands.map((b, i) => (i === index ? { ...b, ...patch, origin: "stated" } : b)));
+    onChange(
+      bands.map((b, i) =>
+        i === index ? { ...b, ...patch, origin: "stated" } : b,
+      ),
+    );
   const add = () =>
-    onChange([...bands, { employees: { min: null, max: null }, primary_titles: [], secondary_titles: [], origin: "stated" }]);
+    onChange([
+      ...bands,
+      {
+        employees: { min: null, max: null },
+        primary_titles: [],
+        secondary_titles: [],
+        origin: "stated",
+      },
+    ]);
   return (
     <div>
       <div className="mb-2 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-700">Who to contact, by company size</h3>
+        <h3 className="text-sm font-medium text-slate-700">
+          Who to contact, by company size
+        </h3>
         <button type="button" className={secondaryButton} onClick={add}>
           Add
         </button>
@@ -120,7 +155,14 @@ function SizeBands({ bands, onChange }: { bands: SizeBand[]; onChange: (bands: S
                   aria-label={`Band ${i + 1} employees min`}
                   className={`${inputClass} w-24`}
                   value={band.employees.min ?? ""}
-                  onChange={(e) => set(i, { employees: { ...band.employees, min: toNumber(e.target.value) } })}
+                  onChange={(e) =>
+                    set(i, {
+                      employees: {
+                        ...band.employees,
+                        min: toNumber(e.target.value),
+                      },
+                    })
+                  }
                 />
                 <span>to</span>
                 <input
@@ -128,7 +170,14 @@ function SizeBands({ bands, onChange }: { bands: SizeBand[]; onChange: (bands: S
                   aria-label={`Band ${i + 1} employees max`}
                   className={`${inputClass} w-24`}
                   value={band.employees.max ?? ""}
-                  onChange={(e) => set(i, { employees: { ...band.employees, max: toNumber(e.target.value) } })}
+                  onChange={(e) =>
+                    set(i, {
+                      employees: {
+                        ...band.employees,
+                        max: toNumber(e.target.value),
+                      },
+                    })
+                  }
                 />
                 <span>employees</span>
                 <OriginBadge origin={band.origin} />
@@ -145,14 +194,18 @@ function SizeBands({ bands, onChange }: { bands: SizeBand[]; onChange: (bands: S
                 className={inputClass}
                 value={band.primary_titles.join(", ")}
                 placeholder="Primary titles, comma-separated"
-                onChange={(e) => set(i, { primary_titles: splitTitles(e.target.value) })}
+                onChange={(e) =>
+                  set(i, { primary_titles: splitTitles(e.target.value) })
+                }
               />
               <input
                 aria-label={`Band ${i + 1} secondary titles`}
                 className={inputClass}
                 value={band.secondary_titles.join(", ")}
                 placeholder="Backup titles, comma-separated"
-                onChange={(e) => set(i, { secondary_titles: splitTitles(e.target.value) })}
+                onChange={(e) =>
+                  set(i, { secondary_titles: splitTitles(e.target.value) })
+                }
               />
             </li>
           ))}
@@ -162,7 +215,15 @@ function SizeBands({ bands, onChange }: { bands: SizeBand[]; onChange: (bands: S
   );
 }
 
-function ReadOnlyList({ title, items, emptyText }: { title: string; items: string[]; emptyText: string }) {
+function ReadOnlyList({
+  title,
+  items,
+  emptyText,
+}: {
+  title: string;
+  items: string[];
+  emptyText: string;
+}) {
   return (
     <div>
       <h3 className="mb-2 text-sm font-medium text-slate-700">{title}</h3>
@@ -179,8 +240,15 @@ function ReadOnlyList({ title, items, emptyText }: { title: string; items: strin
   );
 }
 
-export function IcpEditor({ value, onChange }: { value: StructuredICP; onChange: (value: StructuredICP) => void }) {
-  const set = (patch: Partial<StructuredICP>) => onChange({ ...value, ...patch });
+export function IcpEditor({
+  value,
+  onChange,
+}: {
+  value: StructuredICP;
+  onChange: (value: StructuredICP) => void;
+}) {
+  const set = (patch: Partial<StructuredICP>) =>
+    onChange({ ...value, ...patch });
   const setBuyer = (patch: Partial<StructuredICP["buyer_map"]>) =>
     onChange({ ...value, buyer_map: { ...value.buyer_map, ...patch } });
 
@@ -196,9 +264,23 @@ export function IcpEditor({ value, onChange }: { value: StructuredICP; onChange:
         />
       </Section>
       <Section title="Which companies">
-        <TaggedList label="Industries" items={value.industries} onChange={(industries) => set({ industries })} {...asText} />
-        <TaggedList label="Locations" items={value.locations} onChange={(locations) => set({ locations })} {...asLocation} />
-        <RangeField label="Employees" value={value.employee_range} onChange={(employee_range) => set({ employee_range })} />
+        <TaggedList
+          label="Industries"
+          items={value.industries}
+          onChange={(industries) => set({ industries })}
+          {...asText}
+        />
+        <TaggedList
+          label="Locations"
+          items={value.locations}
+          onChange={(locations) => set({ locations })}
+          {...asLocation}
+        />
+        <RangeField
+          label="Employees"
+          value={value.employee_range}
+          onChange={(employee_range) => set({ employee_range })}
+        />
         <RangeField
           label="Revenue"
           value={value.revenue_range_usd}
@@ -210,7 +292,12 @@ export function IcpEditor({ value, onChange }: { value: StructuredICP; onChange:
           onChange={(other_criteria) => set({ other_criteria })}
           {...asText}
         />
-        <TaggedList label="Exclusions" items={value.exclusions} onChange={(exclusions) => set({ exclusions })} {...asText} />
+        <TaggedList
+          label="Exclusions"
+          items={value.exclusions}
+          onChange={(exclusions) => set({ exclusions })}
+          {...asText}
+        />
       </Section>
       <Section title="Buyer map">
         <TaggedList
@@ -219,7 +306,10 @@ export function IcpEditor({ value, onChange }: { value: StructuredICP; onChange:
           onChange={(target_functions) => setBuyer({ target_functions })}
           {...asText}
         />
-        <SizeBands bands={value.buyer_map.by_company_size} onChange={(by_company_size) => setBuyer({ by_company_size })} />
+        <SizeBands
+          bands={value.buyer_map.by_company_size}
+          onChange={(by_company_size) => setBuyer({ by_company_size })}
+        />
         <TaggedList
           label="Titles to skip"
           items={value.buyer_map.skip_titles}
@@ -228,8 +318,16 @@ export function IcpEditor({ value, onChange }: { value: StructuredICP; onChange:
         />
       </Section>
       <Section title="How Covora read it">
-        <ReadOnlyList title="Assumptions" items={value.assumptions} emptyText="No assumptions." />
-        <ReadOnlyList title="Planned searches" items={value.search_queries} emptyText="None yet" />
+        <ReadOnlyList
+          title="Assumptions"
+          items={value.assumptions}
+          emptyText="No assumptions."
+        />
+        <ReadOnlyList
+          title="Planned searches"
+          items={value.search_queries}
+          emptyText="None yet"
+        />
       </Section>
     </div>
   );

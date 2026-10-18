@@ -1,7 +1,8 @@
 export const formatDuration = (ms: number | null) =>
   ms === null ? "—" : ms < 1000 ? `${ms} ms` : `${(ms / 1000).toFixed(1)} s`;
 
-export const formatCost = (usd: number | null) => (usd === null ? "—" : `$${usd.toFixed(4)}`);
+export const formatCost = (usd: number | null) =>
+  usd === null ? "—" : `$${usd.toFixed(4)}`;
 
 export const formatTokens = (n: number) => n.toLocaleString();
 
@@ -15,7 +16,9 @@ export const STATUS_STYLES: Record<string, string> = {
 
 export function StatusBadge({ status }: { status: string }) {
   return (
-    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] ?? "bg-slate-100"}`}>
+    <span
+      className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_STYLES[status] ?? "bg-slate-100"}`}
+    >
       {status}
     </span>
   );

@@ -10,19 +10,26 @@ export function Campaigns() {
   const campaigns = useQuery({
     queryKey: ["campaigns"],
     queryFn: () => apiFetch<CampaignOut[]>("/campaigns"),
-    refetchInterval: (query) => (query.state.data?.some((c) => isActive(c.status)) ? 3000 : false),
+    refetchInterval: (query) =>
+      query.state.data?.some((c) => isActive(c.status)) ? 3000 : false,
   });
 
   return (
     <>
-      <PageHeader title="Campaigns" subtitle="Each campaign finds companies and the right person at each." />
+      <PageHeader
+        title="Campaigns"
+        subtitle="Each campaign finds companies and the right person at each."
+      />
       {campaigns.isError && (
         <p role="alert" className="text-sm text-red-600">
           {campaigns.error.message}
         </p>
       )}
       {campaigns.data && campaigns.data.length === 0 && (
-        <EmptyState title="No campaigns yet" body="Save an ICP in ICP Studio, then launch a campaign." />
+        <EmptyState
+          title="No campaigns yet"
+          body="Save an ICP in ICP Studio, then launch a campaign."
+        />
       )}
       {campaigns.data && campaigns.data.length > 0 && (
         <div className="overflow-hidden rounded-lg border border-slate-200">
@@ -40,7 +47,10 @@ export function Campaigns() {
               {campaigns.data.map((c) => (
                 <tr key={c.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
-                    <Link to={`/campaigns/${c.id}`} className="font-medium text-indigo-700 hover:underline">
+                    <Link
+                      to={`/campaigns/${c.id}`}
+                      className="font-medium text-indigo-700 hover:underline"
+                    >
                       {c.name}
                     </Link>
                   </td>
@@ -48,7 +58,9 @@ export function Campaigns() {
                     <CampaignStatusBadge status={c.status} />
                   </td>
                   <td className="px-4 py-3 text-slate-600">{`${c.funnel.prospects} / ${c.target_prospects}`}</td>
-                  <td className="px-4 py-3 text-slate-600">{new Date(c.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-slate-600">
+                    {new Date(c.created_at).toLocaleString()}
+                  </td>
                 </tr>
               ))}
             </tbody>

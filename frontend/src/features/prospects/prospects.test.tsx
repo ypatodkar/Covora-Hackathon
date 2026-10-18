@@ -1,7 +1,12 @@
 import { screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { Prospects } from "../../pages/Prospects";
-import { CAMPAIGN_COMPLETE, COMPANIES, COMPANY_DETAIL, PROSPECTS } from "../../test/fixtures";
+import {
+  CAMPAIGN_COMPLETE,
+  COMPANIES,
+  COMPANY_DETAIL,
+  PROSPECTS,
+} from "../../test/fixtures";
 import { mockFetch, renderWithQuery } from "../../test/utils";
 
 it("shows companies with criteria chips and opens facts", async () => {
@@ -14,7 +19,9 @@ it("shows companies with criteria chips and opens facts", async () => {
   await userEvent.click(await screen.findByText("Ohio Precision Fabrication"));
   const drawer = await screen.findByRole("dialog");
   expect(await within(drawer).findByText("Verified")).toBeInTheDocument();
-  expect(within(drawer).getByRole("link", { name: /ohio-precision\.test/ })).toHaveAttribute("target", "_blank");
+  expect(
+    within(drawer).getByRole("link", { name: /ohio-precision\.test/ }),
+  ).toHaveAttribute("target", "_blank");
 });
 
 it("shows people with email status", async () => {
@@ -30,12 +37,14 @@ it("shows people with email status", async () => {
 });
 
 it("links CSV exports for the selected campaign", async () => {
-  mockFetch({ "GET /api/campaigns": [CAMPAIGN_COMPLETE], "GET /api/campaigns/c1/companies": COMPANIES });
+  mockFetch({
+    "GET /api/campaigns": [CAMPAIGN_COMPLETE],
+    "GET /api/campaigns/c1/companies": COMPANIES,
+  });
   renderWithQuery(<Prospects />, { route: "/prospects?campaign=c1" });
-  expect(await screen.findByRole("link", { name: "Export companies CSV" })).toHaveAttribute(
-    "href",
-    "/api/exports/companies.csv?campaign_id=c1",
-  );
+  expect(
+    await screen.findByRole("link", { name: "Export companies CSV" }),
+  ).toHaveAttribute("href", "/api/exports/companies.csv?campaign_id=c1");
 });
 
 it("shows empty state without campaigns", async () => {

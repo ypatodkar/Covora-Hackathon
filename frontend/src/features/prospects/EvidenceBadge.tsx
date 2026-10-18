@@ -8,7 +8,11 @@ const EVIDENCE: Record<EvidenceLabel, [string, string]> = {
 
 export function EvidenceBadge({ label }: { label: EvidenceLabel }) {
   const [text, style] = EVIDENCE[label] ?? EVIDENCE.unknown;
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>{text}</span>;
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
+      {text}
+    </span>
+  );
 }
 
 const EMAIL: Record<string, [string, string]> = {
@@ -19,7 +23,11 @@ const EMAIL: Record<string, [string, string]> = {
 
 export function EmailBadge({ status }: { status: string }) {
   const [text, style] = EMAIL[status] ?? EMAIL.missing;
-  return <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>{text}</span>;
+  return (
+    <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${style}`}>
+      {text}
+    </span>
+  );
 }
 
 const CRITERION: Record<CriterionStatus, string> = {
@@ -35,15 +43,30 @@ export const CRITERION_LABELS: Record<string, string> = {
   revenue_range: "Revenue",
 };
 
-export function CriterionChip({ name, status }: { name: string; status: CriterionStatus }) {
-  const label = CRITERION_LABELS[name] ?? (name.startsWith("exclusion") ? "Exclusion" : "Other");
+export function CriterionChip({
+  name,
+  status,
+}: {
+  name: string;
+  status: CriterionStatus;
+}) {
+  const label =
+    CRITERION_LABELS[name] ??
+    (name.startsWith("exclusion") ? "Exclusion" : "Other");
   return (
-    <span title={`${label}: ${status.replace("_", " ")}`} className={`rounded px-1.5 py-0.5 text-xs ring-1 ring-inset ${CRITERION[status]}`}>
+    <span
+      title={`${label}: ${status.replace("_", " ")}`}
+      className={`rounded px-1.5 py-0.5 text-xs ring-1 ring-inset ${CRITERION[status]}`}
+    >
       {label}
     </span>
   );
 }
 
 export function SyntheticBadge() {
-  return <span className="rounded bg-violet-50 px-1.5 py-0.5 text-xs text-violet-700">Synthetic (mock web)</span>;
+  return (
+    <span className="rounded bg-violet-50 px-1.5 py-0.5 text-xs text-violet-700">
+      Synthetic (mock web)
+    </span>
+  );
 }

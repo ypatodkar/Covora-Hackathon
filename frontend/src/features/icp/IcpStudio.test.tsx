@@ -1,18 +1,30 @@
 import { screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { IcpStudio } from "../../pages/IcpStudio";
-import { EXAMPLE_ICP_WITH_INFERRED_SIZE, PARSED, VAGUE_ICP, VERSION } from "../../test/fixtures";
+import {
+  EXAMPLE_ICP_WITH_INFERRED_SIZE,
+  PARSED,
+  VAGUE_ICP,
+  VERSION,
+} from "../../test/fixtures";
 import { mockFetch, renderWithQuery } from "../../test/utils";
 
 async function interpret(text: string) {
-  await userEvent.type(screen.getByLabelText("Describe your ideal customers"), text);
+  await userEvent.type(
+    screen.getByLabelText("Describe your ideal customers"),
+    text,
+  );
   await userEvent.click(screen.getByRole("button", { name: "Interpret" }));
 }
 
 it("interprets a prompt and highlights inferred fields", async () => {
   mockFetch({
     "GET /api/icps": [],
-    "POST /api/icp/parse": { draft: EXAMPLE_ICP_WITH_INFERRED_SIZE, run_id: "r1", working_memory: [] },
+    "POST /api/icp/parse": {
+      draft: EXAMPLE_ICP_WITH_INFERRED_SIZE,
+      run_id: "r1",
+      working_memory: [],
+    },
   });
   renderWithQuery(<IcpStudio />);
   await interpret("US manufacturers");
@@ -32,16 +44,30 @@ it("editing a field marks it as stated and saves", async () => {
   await userEvent.type(max, "50");
   await userEvent.click(screen.getByRole("button", { name: "Save version" }));
   expect(await screen.findByText("Saved as v1")).toBeInTheDocument();
-  const structured = calls.body("POST /api/icps").structured as { employee_range: unknown };
-  expect(structured.employee_range).toEqual({ value: { min: 5, max: 50 }, origin: "stated" });
+  const structured = calls.body("POST /api/icps").structured as {
+    employee_range: unknown;
+  };
+  expect(structured.employee_range).toEqual({
+    value: { min: 5, max: 50 },
+    origin: "stated",
+  });
 });
 
 it("renders empty sections as editable", async () => {
-  mockFetch({ "GET /api/icps": [], "POST /api/icp/parse": { draft: VAGUE_ICP, run_id: "r", working_memory: [] } });
+  mockFetch({
+    "GET /api/icps": [],
+    "POST /api/icp/parse": {
+      draft: VAGUE_ICP,
+      run_id: "r",
+      working_memory: [],
+    },
+  });
   renderWithQuery(<IcpStudio />);
   await interpret("find some companies");
   expect((await screen.findAllByText("None yet")).length).toBeGreaterThan(0);
-  expect(screen.getAllByRole("button", { name: "Add" }).length).toBeGreaterThan(0);
+  expect(screen.getAllByRole("button", { name: "Add" }).length).toBeGreaterThan(
+    0,
+  );
 });
 
 it("shows model-unavailable error", async () => {

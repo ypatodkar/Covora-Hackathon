@@ -12,11 +12,19 @@ it("shows empty runs state", async () => {
 });
 
 it("nests spans and shows the routing decision", async () => {
-  mockFetch({ "GET /api/runs/r1": RUN_DETAIL, "GET /api/runs/r1/spans/s-agent/memory": [] });
-  renderWithQuery(<RunDetail />, { route: "/workflow/runs/r1", path: "/workflow/runs/:runId" });
+  mockFetch({
+    "GET /api/runs/r1": RUN_DETAIL,
+    "GET /api/runs/r1/spans/s-agent/memory": [],
+  });
+  renderWithQuery(<RunDetail />, {
+    route: "/workflow/runs/r1",
+    path: "/workflow/runs/:runId",
+  });
   await userEvent.click(await screen.findByText("llm:icp_parsing"));
   expect(screen.getByText("fixed: icp_parsing → super")).toBeInTheDocument();
-  expect(screen.getByText("nvidia/nemotron-3-super-120b-a12b")).toBeInTheDocument();
+  expect(
+    screen.getByText("nvidia/nemotron-3-super-120b-a12b"),
+  ).toBeInTheDocument();
 });
 
 it("shows working memory for an agent step", async () => {
@@ -35,13 +43,19 @@ it("shows working memory for an agent step", async () => {
       },
     ],
   });
-  renderWithQuery(<RunDetail />, { route: "/workflow/runs/r1", path: "/workflow/runs/:runId" });
+  renderWithQuery(<RunDetail />, {
+    route: "/workflow/runs/r1",
+    path: "/workflow/runs/:runId",
+  });
   await userEvent.click(await screen.findByText("icp:icp_parsing"));
   expect(await screen.findByText(/10–50/)).toBeInTheDocument();
 });
 
 it("shows a failed span's error", async () => {
   mockFetch({ "GET /api/runs/r2": FAILED_RUN_DETAIL });
-  renderWithQuery(<RunDetail />, { route: "/workflow/runs/r2", path: "/workflow/runs/:runId" });
+  renderWithQuery(<RunDetail />, {
+    route: "/workflow/runs/r2",
+    path: "/workflow/runs/:runId",
+  });
   expect(await screen.findByText(/503/)).toBeInTheDocument();
 });

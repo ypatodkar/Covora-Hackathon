@@ -2,8 +2,19 @@ import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { apiFetch, postJson } from "../../api/client";
-import type { CampaignOut, GoalType, IcpVersionOut, SizingEstimate, WorkspaceSettings } from "../../api/types";
-import { inputClass, labelClass, primaryButton, secondaryButton } from "../../components/ui";
+import type {
+  CampaignOut,
+  GoalType,
+  IcpVersionOut,
+  SizingEstimate,
+  WorkspaceSettings,
+} from "../../api/types";
+import {
+  inputClass,
+  labelClass,
+  primaryButton,
+  secondaryButton,
+} from "../../components/ui";
 import { toFraction, toPercent } from "../settings/GoalsForm";
 
 const n = (value: number) => value.toLocaleString("en-US");
@@ -17,7 +28,13 @@ function useDebounced<T>(value: T, ms: number): T {
   return debounced;
 }
 
-export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpVersionOut; onClose: () => void }) {
+export function LaunchCampaignDialog({
+  icpVersion,
+  onClose,
+}: {
+  icpVersion: IcpVersionOut;
+  onClose: () => void;
+}) {
   const navigate = useNavigate();
   const settings = useQuery({
     queryKey: ["workspace-settings"],
@@ -49,7 +66,10 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
     meetings_per_positive: toFraction(Number(meetingsPercent) || 50),
   };
   const prospectLimit = limit.trim() === "" ? null : Number(limit);
-  const payload = useDebounced({ ...goals, prospect_limit: prospectLimit }, 400);
+  const payload = useDebounced(
+    { ...goals, prospect_limit: prospectLimit },
+    400,
+  );
   const estimate = useQuery({
     queryKey: ["estimate", payload],
     queryFn: () => postJson<SizingEstimate>("/campaigns/estimate", payload),
@@ -70,7 +90,10 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
   });
 
   const e = estimate.data;
-  const withinBudget = e ? e.fits_budget || (prospectLimit !== null && prospectLimit <= e.max_affordable_prospects) : false;
+  const withinBudget = e
+    ? e.fits_budget ||
+      (prospectLimit !== null && prospectLimit <= e.max_affordable_prospects)
+    : false;
 
   return (
     <div className="fixed inset-0 z-20 flex items-center justify-center bg-slate-900/30 p-4">
@@ -88,7 +111,12 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
             <label htmlFor="campaign-name" className={labelClass}>
               Campaign name
             </label>
-            <input id="campaign-name" className={`${inputClass} mt-1`} value={name} onChange={(ev) => setName(ev.target.value)} />
+            <input
+              id="campaign-name"
+              className={`${inputClass} mt-1`}
+              value={name}
+              onChange={(ev) => setName(ev.target.value)}
+            />
           </div>
           <div className="flex gap-6">
             {(
@@ -97,8 +125,16 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
                 ["meetings", "Meetings"],
               ] as const
             ).map(([value, label]) => (
-              <label key={value} className="flex items-center gap-2 text-sm text-slate-700">
-                <input type="radio" name="launch-goal" checked={goalType === value} onChange={() => setGoalType(value)} />
+              <label
+                key={value}
+                className="flex items-center gap-2 text-sm text-slate-700"
+              >
+                <input
+                  type="radio"
+                  name="launch-goal"
+                  checked={goalType === value}
+                  onChange={() => setGoalType(value)}
+                />
                 {label}
               </label>
             ))}
@@ -108,31 +144,57 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
               <label htmlFor="launch-target" className={labelClass}>
                 Target
               </label>
-              <input id="launch-target" type="number" min="1" className={`${inputClass} mt-1`} value={target}
-                onChange={(ev) => setTarget(ev.target.value)} />
+              <input
+                id="launch-target"
+                type="number"
+                min="1"
+                className={`${inputClass} mt-1`}
+                value={target}
+                onChange={(ev) => setTarget(ev.target.value)}
+              />
             </div>
             <div>
               <label htmlFor="launch-rate" className={labelClass}>
                 Expected positive reply rate (%)
               </label>
-              <input id="launch-rate" type="number" min="0" step="0.01" className={`${inputClass} mt-1`} value={ratePercent}
-                onChange={(ev) => setRatePercent(ev.target.value)} />
+              <input
+                id="launch-rate"
+                type="number"
+                min="0"
+                step="0.01"
+                className={`${inputClass} mt-1`}
+                value={ratePercent}
+                onChange={(ev) => setRatePercent(ev.target.value)}
+              />
             </div>
             {goalType === "meetings" && (
               <div>
                 <label htmlFor="launch-meetings" className={labelClass}>
                   Meetings per positive reply (%)
                 </label>
-                <input id="launch-meetings" type="number" min="0" className={`${inputClass} mt-1`} value={meetingsPercent}
-                  onChange={(ev) => setMeetingsPercent(ev.target.value)} />
+                <input
+                  id="launch-meetings"
+                  type="number"
+                  min="0"
+                  className={`${inputClass} mt-1`}
+                  value={meetingsPercent}
+                  onChange={(ev) => setMeetingsPercent(ev.target.value)}
+                />
               </div>
             )}
             <div>
               <label htmlFor="launch-limit" className={labelClass}>
                 Find up to
               </label>
-              <input id="launch-limit" type="number" min="1" placeholder="All needed" className={`${inputClass} mt-1`}
-                value={limit} onChange={(ev) => setLimit(ev.target.value)} />
+              <input
+                id="launch-limit"
+                type="number"
+                min="1"
+                placeholder="All needed"
+                className={`${inputClass} mt-1`}
+                value={limit}
+                onChange={(ev) => setLimit(ev.target.value)}
+              />
             </div>
           </div>
 
@@ -149,15 +211,21 @@ export function LaunchCampaignDialog({ icpVersion, onClose }: { icpVersion: IcpV
                 <p>{`${n(e.gmail_emails)} via Gmail, ${n(e.in_app_emails)} delivered in-app`}</p>
                 <p className="text-slate-500">
                   {`$${e.budget_remaining_usd.toFixed(2)} left · ${
-                    e.cost_model_source === "measured" ? "Based on your past campaigns" : "Based on your expected rate"
+                    e.cost_model_source === "measured"
+                      ? "Based on your past campaigns"
+                      : "Based on your expected rate"
                   }`}
                 </p>
               </div>
             )}
           </div>
           {e && !e.fits_budget && (
-            <p role="alert" className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800">
-              This is more than your remaining budget — at most {n(e.max_affordable_prospects)} prospects fit.
+            <p
+              role="alert"
+              className="rounded-md bg-amber-50 px-4 py-3 text-sm text-amber-800"
+            >
+              This is more than your remaining budget — at most{" "}
+              {n(e.max_affordable_prospects)} prospects fit.
             </p>
           )}
           {launch.isError && (

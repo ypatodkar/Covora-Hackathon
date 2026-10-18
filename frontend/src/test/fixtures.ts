@@ -14,11 +14,15 @@ import type {
 
 // Mirrors backend/tests/fixtures_icp.py.
 export const EXAMPLE_ICP: StructuredICP = {
-  summary: "US manufacturers, 5–25 employees, $5–20M revenue; ops and partnerships leaders",
+  summary:
+    "US manufacturers, 5–25 employees, $5–20M revenue; ops and partnerships leaders",
   industries: [{ value: "manufacturing", origin: "stated" }],
   locations: [{ value: { country: "US", regions: [] }, origin: "stated" }],
   employee_range: { value: { min: 5, max: 25 }, origin: "stated" },
-  revenue_range_usd: { value: { min: 5000000, max: 20000000 }, origin: "stated" },
+  revenue_range_usd: {
+    value: { min: 5000000, max: 20000000 },
+    origin: "stated",
+  },
   other_criteria: [],
   exclusions: [],
   buyer_map: {
@@ -29,7 +33,13 @@ export const EXAMPLE_ICP: StructuredICP = {
     by_company_size: [
       {
         employees: { min: 1, max: 50 },
-        primary_titles: ["Owner", "CEO", "President", "COO", "Operations Manager"],
+        primary_titles: [
+          "Owner",
+          "CEO",
+          "President",
+          "COO",
+          "Operations Manager",
+        ],
         secondary_titles: ["Plant Manager", "Head of Partnerships"],
         origin: "inferred",
       },
@@ -37,7 +47,10 @@ export const EXAMPLE_ICP: StructuredICP = {
     skip_titles: [{ value: "Recruiter", origin: "inferred" }],
   },
   assumptions: ["Read 'business partnerships' as BD/partnerships roles"],
-  search_queries: ["US metal fabrication companies 10-25 employees", "small contract manufacturers Ohio"],
+  search_queries: [
+    "US metal fabrication companies 10-25 employees",
+    "small contract manufacturers Ohio",
+  ],
 };
 
 export const EXAMPLE_ICP_WITH_INFERRED_SIZE: StructuredICP = {
@@ -58,7 +71,11 @@ export const VAGUE_ICP: StructuredICP = {
   search_queries: [],
 };
 
-export const PARSED: ParseResponse = { draft: EXAMPLE_ICP_WITH_INFERRED_SIZE, run_id: "r1", working_memory: [] };
+export const PARSED: ParseResponse = {
+  draft: EXAMPLE_ICP_WITH_INFERRED_SIZE,
+  run_id: "r1",
+  working_memory: [],
+};
 
 export const VERSION: IcpVersionOut = {
   id: "v1",
@@ -133,7 +150,12 @@ export const RUN_DETAIL: RunDetail = {
 };
 
 export const FAILED_RUN_DETAIL: RunDetail = {
-  run: { ...RUN_DETAIL.run, id: "r2", status: "failed", error: "Every model attempt failed" },
+  run: {
+    ...RUN_DETAIL.run,
+    id: "r2",
+    status: "failed",
+    error: "Every model attempt failed",
+  },
   spans: [
     {
       id: "s-fail",
@@ -151,8 +173,17 @@ export const FAILED_RUN_DETAIL: RunDetail = {
 };
 
 export const SETTINGS: WorkspaceSettings = {
-  goals: { goal_type: "positive_replies", target: 10, expected_positive_rate: 0.01, meetings_per_positive: 0.5 },
-  sending: { daily_gmail_cap: 100, first_batch_size: 10, no_reply_window_minutes: 10 },
+  goals: {
+    goal_type: "positive_replies",
+    target: 10,
+    expected_positive_rate: 0.01,
+    meetings_per_positive: 0.5,
+  },
+  sending: {
+    daily_gmail_cap: 100,
+    first_batch_size: 10,
+    no_reply_window_minutes: 10,
+  },
 };
 
 export const ESTIMATE_1000: SizingEstimate = {
@@ -172,7 +203,15 @@ export const ESTIMATE_1000: SizingEstimate = {
   cost_model_source: "default",
 };
 
-const ZERO_FUNNEL = { candidates: 0, qualified: 0, rejected: 0, needs_review: 0, with_contacts: 0, prospects: 0, no_contact: 0 };
+const ZERO_FUNNEL = {
+  candidates: 0,
+  qualified: 0,
+  rejected: 0,
+  needs_review: 0,
+  with_contacts: 0,
+  prospects: 0,
+  no_contact: 0,
+};
 
 export const CAMPAIGN_DRAFT: CampaignOut = {
   id: "c1",
@@ -193,7 +232,15 @@ export const CAMPAIGN_COMPLETE: CampaignOut = {
   status: "complete",
   target_prospects: 3,
   progress: { used_queries: ["q"], waves: 1, stop_reason: "enough_qualified" },
-  funnel: { candidates: 6, qualified: 4, rejected: 2, needs_review: 0, with_contacts: 3, prospects: 3, no_contact: 1 },
+  funnel: {
+    candidates: 6,
+    qualified: 4,
+    rejected: 2,
+    needs_review: 0,
+    with_contacts: 3,
+    prospects: 3,
+    no_contact: 1,
+  },
   latest_run_id: "r1",
 };
 
@@ -221,7 +268,11 @@ export const COMPANIES: CompanyRow[] = [
       { name: "revenue_range", status: "unknown", fact_ids: [] },
     ],
     synthetic: true,
-    facts_summary: { employee_count: "18", industry: "metal fabrication", location: "Dayton, Ohio" },
+    facts_summary: {
+      employee_count: "18",
+      industry: "metal fabrication",
+      location: "Dayton, Ohio",
+    },
   },
   {
     company_id: "co2",
@@ -264,7 +315,12 @@ const MARK: ContactOut = {
 };
 
 export const COMPANY_DETAIL: CompanyDetail = {
-  company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test", synthetic: true },
+  company: {
+    id: "co1",
+    name: "Ohio Precision Fabrication",
+    domain: "ohio-precision.test",
+    synthetic: true,
+  },
   facts: [
     {
       field: "employee_count",
@@ -281,13 +337,33 @@ export const COMPANY_DETAIL: CompanyDetail = {
 
 export const PROSPECTS: ProspectRow[] = [
   {
-    prospect_id: "x1", short_id: "a1b2c3d4", role: "primary", status: "selected", confidence: "high",
-    pick_reason: "Owns operations.", company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test" },
-    contact: DANA, synthetic: true,
+    prospect_id: "x1",
+    short_id: "a1b2c3d4",
+    role: "primary",
+    status: "selected",
+    confidence: "high",
+    pick_reason: "Owns operations.",
+    company: {
+      id: "co1",
+      name: "Ohio Precision Fabrication",
+      domain: "ohio-precision.test",
+    },
+    contact: DANA,
+    synthetic: true,
   },
   {
-    prospect_id: "x2", short_id: "e5f6a7b8", role: "backup", status: "selected", confidence: "medium",
-    pick_reason: "Owner decides at this size.", company: { id: "co1", name: "Ohio Precision Fabrication", domain: "ohio-precision.test" },
-    contact: MARK, synthetic: true,
+    prospect_id: "x2",
+    short_id: "e5f6a7b8",
+    role: "backup",
+    status: "selected",
+    confidence: "medium",
+    pick_reason: "Owner decides at this size.",
+    company: {
+      id: "co1",
+      name: "Ohio Precision Fabrication",
+      domain: "ohio-precision.test",
+    },
+    contact: MARK,
+    synthetic: true,
   },
 ];

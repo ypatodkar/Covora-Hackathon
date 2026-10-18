@@ -14,10 +14,14 @@ interface Node {
 }
 
 function buildTree(spans: SpanOut[]): Node[] {
-  const nodes = new Map(spans.map((s) => [s.id, { span: s, children: [] as Node[] }]));
+  const nodes = new Map(
+    spans.map((s) => [s.id, { span: s, children: [] as Node[] }]),
+  );
   const roots: Node[] = [];
   for (const node of nodes.values()) {
-    const parent = node.span.parent_span_id ? nodes.get(node.span.parent_span_id) : undefined;
+    const parent = node.span.parent_span_id
+      ? nodes.get(node.span.parent_span_id)
+      : undefined;
     (parent ? parent.children : roots).push(node);
   }
   return roots;
@@ -46,22 +50,39 @@ function Row({
         }`}
       >
         <span className="font-mono text-slate-800">{span.name}</span>
-        <span className={`rounded px-1.5 py-0.5 text-xs ${KIND_STYLES[span.kind] ?? "bg-slate-100 text-slate-600"}`}>
+        <span
+          className={`rounded px-1.5 py-0.5 text-xs ${KIND_STYLES[span.kind] ?? "bg-slate-100 text-slate-600"}`}
+        >
           {span.kind}
         </span>
-        {span.status === "running" && <span className="text-xs text-sky-700">running…</span>}
-        <span className="ml-auto text-xs text-slate-400">{formatDuration(span.duration_ms)}</span>
+        {span.status === "running" && (
+          <span className="text-xs text-sky-700">running…</span>
+        )}
+        <span className="ml-auto text-xs text-slate-400">
+          {formatDuration(span.duration_ms)}
+        </span>
       </button>
       {span.status === "error" && span.error && (
-        <p className="mb-1 text-xs text-red-600" style={{ paddingLeft: `${depth * 1.25 + 0.75}rem` }}>
-          <span className="mr-1 rounded bg-red-100 px-1.5 py-0.5 font-medium">error</span>
+        <p
+          className="mb-1 text-xs text-red-600"
+          style={{ paddingLeft: `${depth * 1.25 + 0.75}rem` }}
+        >
+          <span className="mr-1 rounded bg-red-100 px-1.5 py-0.5 font-medium">
+            error
+          </span>
           {span.error}
         </p>
       )}
       {node.children.length > 0 && (
         <ul>
           {node.children.map((child) => (
-            <Row key={child.span.id} node={child} depth={depth + 1} selectedId={selectedId} onSelect={onSelect} />
+            <Row
+              key={child.span.id}
+              node={child}
+              depth={depth + 1}
+              selectedId={selectedId}
+              onSelect={onSelect}
+            />
           ))}
         </ul>
       )}
@@ -81,7 +102,13 @@ export function SpanTree({
   return (
     <ul className="space-y-0.5">
       {buildTree(spans).map((node) => (
-        <Row key={node.span.id} node={node} depth={0} selectedId={selectedId} onSelect={onSelect} />
+        <Row
+          key={node.span.id}
+          node={node}
+          depth={0}
+          selectedId={selectedId}
+          onSelect={onSelect}
+        />
       ))}
     </ul>
   );

@@ -18,7 +18,10 @@ export function Prospects() {
   const [tab, setTab] = useState<Tab>("companies");
   const [company, setCompany] = useState<CompanyRow | null>(null);
   const [person, setPerson] = useState<ProspectRow | null>(null);
-  const campaigns = useQuery({ queryKey: ["campaigns"], queryFn: () => apiFetch<CampaignOut[]>("/campaigns") });
+  const campaigns = useQuery({
+    queryKey: ["campaigns"],
+    queryFn: () => apiFetch<CampaignOut[]>("/campaigns"),
+  });
   const campaignId = params.get("campaign") ?? campaigns.data?.[0]?.id ?? null;
 
   const companies = useQuery({
@@ -28,7 +31,8 @@ export function Prospects() {
   });
   const people = useQuery({
     queryKey: ["campaign-prospects", campaignId],
-    queryFn: () => apiFetch<ProspectRow[]>(`/campaigns/${campaignId}/prospects`),
+    queryFn: () =>
+      apiFetch<ProspectRow[]>(`/campaigns/${campaignId}/prospects`),
     enabled: campaignId !== null && tab === "people",
   });
 
@@ -36,12 +40,16 @@ export function Prospects() {
     return (
       <>
         <PageHeader title="Prospects" />
-        <EmptyState title="No prospects yet" body="Launch a campaign from ICP Studio to find companies and people." />
+        <EmptyState
+          title="No prospects yet"
+          body="Launch a campaign from ICP Studio to find companies and people."
+        />
       </>
     );
   }
 
-  const exportHref = (kind: "companies" | "prospects") => `/api/exports/${kind}.csv?campaign_id=${campaignId}`;
+  const exportHref = (kind: "companies" | "prospects") =>
+    `/api/exports/${kind}.csv?campaign_id=${campaignId}`;
   const tabClass = (t: Tab) =>
     `rounded-md px-3 py-1.5 text-sm ${tab === t ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100"}`;
 
@@ -77,34 +85,54 @@ export function Prospects() {
           ))}
         </select>
         <div role="tablist" className="flex gap-1 rounded-lg bg-slate-50 p-1">
-          <button type="button" role="tab" aria-selected={tab === "companies"} className={tabClass("companies")}
-            onClick={() => setTab("companies")}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "companies"}
+            className={tabClass("companies")}
+            onClick={() => setTab("companies")}
+          >
             Companies
           </button>
-          <button type="button" role="tab" aria-selected={tab === "people"} className={tabClass("people")}
-            onClick={() => setTab("people")}>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={tab === "people"}
+            className={tabClass("people")}
+            onClick={() => setTab("people")}
+          >
             People
           </button>
         </div>
       </div>
 
       {tab === "companies" && companies.data && companies.data.length === 0 && (
-        <EmptyState title="No companies yet" body="The campaign is still finding companies." />
+        <EmptyState
+          title="No companies yet"
+          body="The campaign is still finding companies."
+        />
       )}
       {tab === "companies" && companies.data && companies.data.length > 0 && (
         <CompaniesTable rows={companies.data} onOpen={setCompany} />
       )}
       {tab === "people" && people.data && people.data.length === 0 && (
-        <EmptyState title="No people picked yet" body="People are picked after companies qualify." />
+        <EmptyState
+          title="No people picked yet"
+          body="People are picked after companies qualify."
+        />
       )}
-      {tab === "people" && people.data && people.data.length > 0 && <PeopleTable rows={people.data} onOpen={setPerson} />}
+      {tab === "people" && people.data && people.data.length > 0 && (
+        <PeopleTable rows={people.data} onOpen={setPerson} />
+      )}
       {(companies.isError || people.isError) && (
         <p role="alert" className="text-sm text-red-600">
           {(companies.error ?? people.error)?.message}
         </p>
       )}
 
-      {company && <CompanyDrawer row={company} onClose={() => setCompany(null)} />}
+      {company && (
+        <CompanyDrawer row={company} onClose={() => setCompany(null)} />
+      )}
       {person && <ContactDrawer row={person} onClose={() => setPerson(null)} />}
     </>
   );

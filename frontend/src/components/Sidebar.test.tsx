@@ -25,5 +25,8 @@ it("marks the current section active", () => {
       <Sidebar />
     </MemoryRouter>,
   );
-  expect(screen.getByRole("link", { name: "ICP Studio" })).toHaveAttribute("aria-current", "page");
+  expect(screen.getByRole("link", { name: "ICP Studio" })).toHaveAttribute(
+    "aria-current",
+    "page",
+  );
 });
